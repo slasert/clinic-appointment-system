@@ -61,3 +61,24 @@ was reproduced by running code; nothing here is assumed.
 | E3 | Cancellation fees and VIP policies are not in the approved requirements. | Not implemented (no invented requirements). |
 | E4 | FR-01 requires 11 digits but not the official national-ID checksum. | Format-only validation kept; checksum listed as future work. |
 | E5 | Appointment duration is fixed at 30 minutes; there is no variable duration, so min/max duration boundaries do not apply. | Documented. |
+
+## F. Resolution status (after Phases 3–5)
+
+| Audit item | Outcome | Commit |
+|---|---|---|
+| A1 / DEF-02 | Fixed (`Locale.ROOT`) | `0977400` |
+| A2 / DEF-03 | Fixed (NFC normalisation) | `27d1ab7` |
+| A3 / DEF-04 | Fixed (package-private mutators in `com.clinic.appointment`) | `bf6a171` |
+| B1 package cycle | Fixed (`com.clinic.rules`) | `9493097` |
+| B2 mixed responsibilities | Fixed (`TimeSlotPolicy` extracted) | `33e335c` |
+| B3 / C1 rule identity | Fixed (`BusinessRule` on every exception; `RuleAssertions`) | `9493097`, `18e20e9` |
+| B4 common base exception | Fixed (`ClinicException`) | `9493097` |
+| B5 hard-coded slot count | Fixed (derived) | `9493097` |
+| B6 national ID in messages | Fixed (masked) | `1c8bfa0` |
+| B7 null constructor arguments | Fixed (`Objects.requireNonNull`) | `bf6a171` |
+| B8 double status check | Kept intentionally; mutation M13 showed it determines the reported reason – now tested (TC-C-09, TC-RS-14) | `de8c64a` |
+| C2–C5 test gaps | Fixed | `18e20e9`, `de8c64a` |
+| D1, D2 documentation | Fixed (README, test-plan, defect-log, report-material) | this phase |
+| D3 missing first log | Cannot be recovered; stated in the test plan | – |
+| D4 clean checkout | Verified in Phase 7 | – |
+| E1–E5 ambiguities | Documented, not implemented | – |

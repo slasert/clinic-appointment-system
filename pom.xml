@@ -52,6 +52,15 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+                <configuration>
+                    <!-- Use @DisplayName (which contains the test case ID) in reports instead of method names -->
+                    <statelessTestsetReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+                        <usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+                    </statelessTestsetReporter>
+                    <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoReporter">
+                        <usePhrasedClassNameInRunning>true</usePhrasedClassNameInRunning>
+                    </statelessTestsetInfoReporter>
+                </configuration>
             </plugin>
 
             <!-- Produces the HTML test execution report: target/reports/surefire.html -->

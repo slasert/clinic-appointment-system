@@ -1,0 +1,230 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.clinic:clinic-appointment-system >----------------
+[INFO] Building Clinic Appointment Management System 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-clean-plugin/3.2.0/maven-clean-plugin-3.2.0.pom
+Progress (1): 780 B
+Progress (1): 865 B
+Progress (1): 2.4 kB
+Progress (1): 4.9 kB
+Progress (1): 5.3 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-clean-plugin/3.2.0/maven-clean-plugin-3.2.0.pom (5.3 kB at 7.6 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/35/maven-plugins-35.pom
+Progress (1): 752 B
+Progress (1): 830 B
+Progress (1): 2.4 kB
+Progress (1): 4.7 kB
+Progress (1): 6.5 kB
+Progress (1): 9.0 kB
+Progress (1): 9.9 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/35/maven-plugins-35.pom (9.9 kB at 144 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/35/maven-parent-35.pom
+Progress (1): 726 B
+Progress (1): 800 B
+Progress (1): 2.0 kB
+Progress (1): 5.7 kB
+Progress (1): 8.6 kB
+Progress (1): 13 kB 
+Progress (1): 18 kB
+Progress (1): 21 kB
+Progress (1): 25 kB
+Progress (1): 27 kB
+Progress (1): 28 kB
+Progress (1): 31 kB
+Progress (1): 35 kB
+Progress (1): 37 kB
+Progress (1): 40 kB
+Progress (1): 44 kB
+Progress (1): 45 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/35/maven-parent-35.pom (45 kB at 588 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/25/apache-25.pom
+Progress (1): 743 B
+Progress (1): 819 B
+Progress (1): 2.2 kB
+Progress (1): 4.0 kB
+Progress (1): 5.5 kB
+Progress (1): 10 kB 
+Progress (1): 15 kB
+Progress (1): 17 kB
+Progress (1): 20 kB
+Progress (1): 21 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/25/apache-25.pom (21 kB at 311 kB/s)
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ clinic-appointment-system ---
+Downloading from central: https://repo.maven.apache.org/maven2/commons-io/commons-io/2.6/commons-io-2.6.pom
+Progress (1): 782 B
+Progress (1): 868 B
+Progress (1): 2.3 kB
+Progress (1): 5.5 kB
+Progress (1): 7.1 kB
+Progress (1): 9.0 kB
+Progress (1): 11 kB 
+Progress (1): 13 kB
+Progress (1): 14 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/commons-io/commons-io/2.6/commons-io-2.6.pom (14 kB at 259 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/42/commons-parent-42.pom
+Progress (1): 707 B
+Progress (1): 779 B
+Progress (1): 2.0 kB
+Progress (1): 3.2 kB
+Progress (1): 4.2 kB
+Progress (1): 5.5 kB
+Progress (1): 7.1 kB
+Progress (1): 9.3 kB
+Progress (1): 12 kB 
+Progress (1): 15 kB
+Progress (1): 18 kB
+Progress (1): 21 kB
+Progress (1): 24 kB
+Progress (1): 26 kB
+Progress (1): 28 kB
+Progress (1): 30 kB
+Progress (1): 32 kB
+Progress (1): 36 kB
+Progress (1): 38 kB
+Progress (1): 40 kB
+Progress (1): 44 kB
+Progress (1): 49 kB
+Progress (1): 52 kB
+Progress (1): 55 kB
+Progress (1): 58 kB
+Progress (1): 59 kB
+Progress (1): 61 kB
+Progress (1): 64 kB
+Progress (1): 65 kB
+Progress (1): 67 kB
+Progress (1): 68 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/42/commons-parent-42.pom (68 kB at 894 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/18/apache-18.pom
+Progress (1): 748 B
+Progress (1): 828 B
+Progress (1): 2.3 kB
+Progress (1): 4.1 kB
+Progress (1): 7.0 kB
+Progress (1): 11 kB 
+Progress (1): 14 kB
+Progress (1): 16 kB
+                   
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/18/apache-18.pom (16 kB at 237 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/commons-io/commons-io/2.6/commons-io-2.6.jar
+Progress (1): 0.6/215 kB
+Progress (1): 3.2/215 kB
+Progress (1): 7.4/215 kB
+Progress (1): 11/215 kB 
+Progress (1): 16/215 kB
+Progress (1): 20/215 kB
+Progress (1): 24/215 kB
+Progress (1): 28/215 kB
+Progress (1): 32/215 kB
+Progress (1): 36/215 kB
+Progress (1): 40/215 kB
+Progress (1): 45/215 kB
+Progress (1): 49/215 kB
+Progress (1): 53/215 kB
+Progress (1): 57/215 kB
+Progress (1): 61/215 kB
+Progress (1): 65/215 kB
+Progress (1): 69/215 kB
+Progress (1): 73/215 kB
+Progress (1): 77/215 kB
+Progress (1): 82/215 kB
+Progress (1): 86/215 kB
+Progress (1): 90/215 kB
+Progress (1): 94/215 kB
+Progress (1): 99/215 kB
+Progress (1): 103/215 kB
+Progress (1): 107/215 kB
+Progress (1): 111/215 kB
+Progress (1): 115/215 kB
+Progress (1): 120/215 kB
+Progress (1): 124/215 kB
+Progress (1): 126/215 kB
+Progress (1): 130/215 kB
+Progress (1): 135/215 kB
+Progress (1): 139/215 kB
+Progress (1): 143/215 kB
+Progress (1): 147/215 kB
+Progress (1): 151/215 kB
+Progress (1): 156/215 kB
+Progress (1): 160/215 kB
+Progress (1): 164/215 kB
+Progress (1): 181/215 kB
+Progress (1): 192/215 kB
+Progress (1): 208/215 kB
+Progress (1): 215 kB    
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/commons-io/commons-io/2.6/commons-io-2.6.jar (215 kB at 1.1 MB/s)
+[INFO] Deleting C:\Users\asih_\OneDrive\Masa�st�\svv\target
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (prepare-agent) @ clinic-appointment-system ---
+[INFO] argLine set to -javaagent:C:\\Users\\asih_\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=C:\\Users\\asih_\\OneDrive\\Masa�st�\\svv\\target\\jacoco.exec,excludes=com/clinic/Main.class
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ clinic-appointment-system ---
+[INFO] skip non existing resourceDirectory C:\Users\asih_\OneDrive\Masa�st�\svv\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ clinic-appointment-system ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 14 source files with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ clinic-appointment-system ---
+[INFO] skip non existing resourceDirectory C:\Users\asih_\OneDrive\Masa�st�\svv\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ clinic-appointment-system ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 14 source files with javac [debug release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ clinic-appointment-system ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running FR-04 Booking
+[INFO] Running FR-04 Booking FR-05 Registration
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.clinic.appointment.BookingTest$Registration
+[INFO] Running FR-04 Booking Decision table rules
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.clinic.appointment.BookingTest$DecisionTable
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.761 s -- in com.clinic.appointment.BookingTest
+[INFO] Running FR-06 Cancellation policy
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.151 s -- in com.clinic.appointment.CancellationTest
+[INFO] Running FR-10 Appointment notes
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.083 s -- in com.clinic.appointment.NoteTest
+[INFO] Running FR-07 Rescheduling
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in com.clinic.appointment.RescheduleTest
+[INFO] Running FR-09 Schedule queries
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in com.clinic.appointment.ScheduleQueryTest
+[INFO] Running FR-03 Time slot validation
+[INFO] Tests run: 37, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.098 s -- in com.clinic.appointment.SlotValidationTest
+[INFO] Running FR-08 Status transitions
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in com.clinic.appointment.StatusTransitionTest
+[INFO] Running TimeSlotPolicy unit tests
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in com.clinic.appointment.TimeSlotPolicyTest
+[INFO] Running DEF-04 Rules cannot be bypassed from outside the appointment package
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.clinic.EncapsulationTest
+[INFO] Running FR-02 Doctor validation
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in com.clinic.model.DoctorTest
+[INFO] Running FR-01 Patient validation
+[INFO] Tests run: 35, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in com.clinic.model.PatientTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 212, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jacoco:0.8.12:report (report) @ clinic-appointment-system ---
+[INFO] Loading execution data file C:\Users\asih_\OneDrive\Masa�st�\svv\target\jacoco.exec
+[INFO] Analyzed bundle 'Clinic Appointment Management System' with 13 classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  9.144 s
+[INFO] Finished at: 2026-10-28T01:06:20+03:00
+[INFO] ------------------------------------------------------------------------

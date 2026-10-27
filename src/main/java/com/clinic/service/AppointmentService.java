@@ -250,9 +250,12 @@ public class AppointmentService {
             throw new SchedulingException(doctor + " has reached the daily limit of "
                     + doctor.getDailyLimit() + " appointments");
         }
+        // Only upcoming appointments are active; past ones left in SCHEDULED must not block the patient (DEF-01).
+        LocalDateTime now = now();
         long active = appointments.values().stream()
                 .filter(a -> a != ignored)
                 .filter(a -> a.getStatus() == AppointmentStatus.SCHEDULED && a.getPatient().equals(patient))
+                .filter(a -> a.getEnd().isAfter(now))
                 .count();
         if (active >= ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT) {
             throw new SchedulingException(patient + " already has "

@@ -169,6 +169,19 @@ class RescheduleTest extends ServiceTestBase {
         assertEquals(2, storedAppointments());
     }
 
+    /** Added after mutant M13 survived: a rejected reschedule must not consume an appointment ID. */
+    @Test
+    @Tag("Negative")
+    @DisplayName("TC-RS-14 rescheduling a cancelled appointment is rejected and uses no appointment ID")
+    void rescheduleOfCancelledUsesNoId() {
+        service.cancel(original.getId(), Requester.PATIENT);
+
+        assertRejected(SchedulingException.class, BusinessRule.STATUS_FINAL,
+                () -> service.reschedule(original.getId(), tuesdayAt(14, 0), Requester.PATIENT));
+
+        assertEquals("A0002", service.book(PATIENT_2, DOCTOR_1, tuesdayAt(14, 0)).getId());
+    }
+
     @ParameterizedTest(name = "TC-RS-11 R6 {0} cannot reschedule after the start")
     @Tag("DecisionTable")
     @Tag("Negative")

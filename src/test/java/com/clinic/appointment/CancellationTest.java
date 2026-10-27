@@ -106,6 +106,19 @@ class CancellationTest extends ServiceTestBase {
         assertFalse(appointment.isLateCancellation());
     }
 
+    /** Added after mutant M13 survived: the status must be reported before any time rule. */
+    @ParameterizedTest(name = "TC-C-09 cancelled appointment, {0} retries {1} before start -> reason is BR-21, not a time rule")
+    @Tag("DecisionTable")
+    @Tag("Negative")
+    @CsvSource({"PATIENT, PT2H", "STAFF, PT-1H"})
+    void statusIsReportedBeforeTimeRules(Requester requester, Duration before) {
+        service.cancel(appointment.getId(), Requester.STAFF);
+        clock.setTo(APPOINTMENT_START.minus(before));
+
+        assertRejected(SchedulingException.class, BusinessRule.STATUS_FINAL,
+                () -> service.cancel(appointment.getId(), requester));
+    }
+
     @Test
     @Tag("Negative")
     @DisplayName("TC-C-05 null requester is rejected and the appointment stays SCHEDULED")

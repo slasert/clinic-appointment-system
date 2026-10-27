@@ -1,0 +1,118 @@
+Manual mutation analysis
+One mutant applied at a time; full suite run (mvnw -o test); source restored with git checkout.
+
+Baseline (no mutant): exit code 0, tests run 212, failures 0, errors 0
+
+M01 KILLED   Last start 16:30 treated as outside hours
+      src/main/java/com/clinic/appointment/TimeSlotPolicy.java
+      '|| time.isAfter(ClinicRules.LAST_SLOT_START)'
+   -> '|| !time.isBefore(ClinicRules.LAST_SLOT_START)'
+      tests run 212, failures 1, errors 3
+      killed by ScheduleQueryTest.emptyDayHasFourteenSlots
+      killed by SlotValidationTest.maxAdvanceBoundaryAccepted
+      killed by SlotValidationTest.validWorkingHours
+
+M02 KILLED   Opening 09:00 treated as outside hours
+      src/main/java/com/clinic/appointment/TimeSlotPolicy.java
+      'time.isBefore(ClinicRules.OPENING_TIME)'
+   -> '!time.isAfter(ClinicRules.OPENING_TIME)'
+      tests run 212, failures 7, errors 16
+      killed by BookingTest$DecisionTable.r4DoctorLimitReached
+      killed by BookingTest$DecisionTable.r5PatientLimitReached
+      killed by BookingTest.cancelledDoesNotCountForDoctorLimit
+      killed by BookingTest.cancelledDoesNotCountForPatientLimit
+      killed by BookingTest.doctorLimitIsPerDay
+      killed by BookingTest.pastScheduledAppointmentsAreNotActive
+      ... and 11 more test methods
+
+M03 KILLED   Lunch starts after 12:00 (12:00 bookable)
+      src/main/java/com/clinic/appointment/TimeSlotPolicy.java
+      '!time.isBefore(ClinicRules.LUNCH_START) && time.isBefore(ClinicRules.LUNCH_END)'
+   -> 'time.isAfter(ClinicRules.LUNCH_START) && time.isBefore(ClinicRules.LUNCH_END)'
+      tests run 212, failures 4, errors 0
+      killed by RescheduleTest.invalidTargetLeavesOriginalUnchanged
+      killed by SlotValidationTest.lunchBreakRejected
+      killed by TimeSlotPolicyTest.exceptionTypeDependsOnRule
+      killed by TimeSlotPolicyTest.rulesAreCheckedInFixedOrder
+
+M04 KILLED   Exactly 1 hour lead time rejected
+      src/main/java/com/clinic/appointment/TimeSlotPolicy.java
+      'start.isBefore(now.plusHours(ClinicRules.MIN_LEAD_HOURS))'
+   -> '!start.isAfter(now.plusHours(ClinicRules.MIN_LEAD_HOURS))'
+      tests run 212, failures 1, errors 1
+      killed by ScheduleQueryTest.todayRespectsLeadTime
+      killed by SlotValidationTest.leadTimeBoundaryAccepted
+
+M05 KILLED   Advance limit off by one (31 days allowed)
+      src/main/java/com/clinic/appointment/TimeSlotPolicy.java
+      'plusDays(ClinicRules.MAX_ADVANCE_DAYS)'
+   -> 'plusDays(ClinicRules.MAX_ADVANCE_DAYS + 1)'
+      tests run 212, failures 2, errors 0
+      killed by ScheduleQueryTest.noSlotsOnInvalidDays
+      killed by SlotValidationTest.maxAdvanceBoundaryRejected
+
+M06 KILLED   Seconds not checked in alignment
+      src/main/java/com/clinic/appointment/TimeSlotPolicy.java
+      'start.getSecond() != 0 ||'
+   -> ''
+      tests run 212, failures 1, errors 0
+      killed by SlotValidationTest.secondsRejected
+
+M07 KILLED   Doctor daily limit uses > instead of >=
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      '>= doctor.getDailyLimit()) {
+            throw'
+   -> '> doctor.getDailyLimit()) {
+            throw'
+      tests run 212, failures 3, errors 0
+      killed by BookingTest$DecisionTable.r4DoctorLimitReached
+      killed by RescheduleTest.doctorLimitAppliesToTargetDay
+      killed by StatusTransitionTest.finishedAppointmentsOccupySlots
+
+M08 KILLED   Patient active limit uses > instead of >=
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      'active >= ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT'
+   -> 'active > ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT'
+      tests run 212, failures 1, errors 0
+      killed by BookingTest$DecisionTable.r5PatientLimitReached
+
+M09 KILLED   Exactly 24 hours treated as late
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      'now.plusHours(ClinicRules.FREE_CANCELLATION_HOURS).isAfter(appointment.getStart())'
+   -> '!now.plusHours(ClinicRules.FREE_CANCELLATION_HOURS).isBefore(appointment.getStart())'
+      tests run 212, failures 1, errors 1
+      killed by CancellationTest.allowedCancellations
+
+M10 KILLED   Patient conflict check removed
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      'if (patientBusy) {'
+   -> 'if (false) {'
+      tests run 212, failures 2, errors 0
+      killed by BookingTest$DecisionTable.r3PatientBusy
+      killed by RescheduleTest.patientConflictAtTarget
+
+M11 KILLED   Reschedule does not exclude the original appointment
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      'checkAvailability(original.getPatient(), original.getDoctor(), newStart, original);'
+   -> 'checkAvailability(original.getPatient(), original.getDoctor(), newStart, null);'
+      tests run 212, failures 0, errors 2
+      killed by RescheduleTest.doctorAtLimitCanRescheduleSameDay
+      killed by RescheduleTest.patientAtLimitCanReschedule
+
+M12 KILLED   DEF-01 fix removed (past appointments count as active)
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      '.filter(a -> a.getEnd().isAfter(now))'
+   -> ''
+      tests run 212, failures 0, errors 1
+      killed by BookingTest.pastScheduledAppointmentsAreNotActive
+
+M13 KILLED   Status check removed from change policy
+      src/main/java/com/clinic/appointment/AppointmentService.java
+      'requireScheduled(appointment);
+        LocalDateTime now = now();'
+   -> 'LocalDateTime now = now();'
+      tests run 212, failures 3, errors 0
+      killed by CancellationTest.statusIsReportedBeforeTimeRules
+      killed by RescheduleTest.rescheduleOfCancelledUsesNoId
+
+Killed 13 of 13 mutants.

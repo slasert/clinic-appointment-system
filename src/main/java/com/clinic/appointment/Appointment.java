@@ -1,6 +1,8 @@
-package com.clinic.model;
+package com.clinic.appointment;
 
 import com.clinic.exception.SchedulingException;
+import com.clinic.model.Doctor;
+import com.clinic.model.Patient;
 import com.clinic.rules.BusinessRule;
 import com.clinic.rules.ClinicRules;
 
@@ -9,9 +11,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * A single 30-minute appointment. Status changes are only allowed from SCHEDULED.
+ * A single 30-minute appointment.
+ *
+ * <p>Other packages can only read an appointment. Creating and changing it is package-private,
+ * so every change has to go through {@link AppointmentService}, which enforces the business
+ * rules (DEF-04).</p>
  */
 public final class Appointment {
 
@@ -23,38 +30,40 @@ public final class Appointment {
     private boolean lateCancellation;
     private final List<String> notes = new ArrayList<>();
 
-    public Appointment(String id, Patient patient, Doctor doctor, LocalDateTime start) {
-        this.id = id;
-        this.patient = patient;
-        this.doctor = doctor;
-        this.start = start;
+    Appointment(String id, Patient patient, Doctor doctor, LocalDateTime start) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.patient = Objects.requireNonNull(patient, "patient");
+        this.doctor = Objects.requireNonNull(doctor, "doctor");
+        this.start = Objects.requireNonNull(start, "start");
     }
 
-    public void cancel(boolean late) {
+    void cancel(boolean late) {
         changeStatus(AppointmentStatus.CANCELLED);
         this.lateCancellation = late;
     }
 
-    public void markRescheduled() {
+    void markRescheduled() {
         changeStatus(AppointmentStatus.RESCHEDULED);
     }
 
-    public void complete() {
+    void complete() {
         changeStatus(AppointmentStatus.COMPLETED);
     }
 
-    public void markNoShow() {
+    void markNoShow() {
         changeStatus(AppointmentStatus.NO_SHOW);
     }
 
     /** Notes are allowed in any status, e.g. to record why an appointment was cancelled. */
-    public void addNote(String note) {
+    void addNote(String note) {
         notes.add(note);
     }
 
+    /** Last line of defence: final statuses can never change, whoever calls. */
     private void changeStatus(AppointmentStatus newStatus) {
         if (status != AppointmentStatus.SCHEDULED) {
-            throw new SchedulingException(BusinessRule.STATUS_FINAL, "Cannot change appointment " + id + " from " + status + " to " + newStatus);
+            throw new SchedulingException(BusinessRule.STATUS_FINAL,
+                    "Cannot change appointment " + id + " from " + status + " to " + newStatus);
         }
         status = newStatus;
     }

@@ -1,9 +1,7 @@
-package com.clinic.service;
+package com.clinic.appointment;
 
 import com.clinic.exception.SchedulingException;
 import com.clinic.exception.ValidationException;
-import com.clinic.model.Appointment;
-import com.clinic.model.AppointmentStatus;
 import com.clinic.model.Doctor;
 import com.clinic.model.Patient;
 import com.clinic.model.Requester;

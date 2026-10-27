@@ -2,7 +2,7 @@ package com.clinic.support;
 
 import com.clinic.model.Doctor;
 import com.clinic.model.Patient;
-import com.clinic.service.AppointmentService;
+import com.clinic.appointment.AppointmentService;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDate;

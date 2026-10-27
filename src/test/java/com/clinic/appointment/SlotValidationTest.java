@@ -1,4 +1,4 @@
-package com.clinic.service;
+package com.clinic.appointment;
 
 import com.clinic.exception.SchedulingException;
 import com.clinic.exception.ValidationException;

@@ -2,11 +2,11 @@ package com.clinic;
 
 import com.clinic.exception.SchedulingException;
 import com.clinic.exception.ValidationException;
-import com.clinic.model.Appointment;
+import com.clinic.appointment.Appointment;
 import com.clinic.model.Doctor;
 import com.clinic.model.Patient;
 import com.clinic.model.Requester;
-import com.clinic.service.AppointmentService;
+import com.clinic.appointment.AppointmentService;
 
 import java.time.Clock;
 import java.time.LocalDate;

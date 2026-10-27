@@ -1,8 +1,7 @@
-package com.clinic.service;
+package com.clinic.appointment;
 
 import com.clinic.exception.SchedulingException;
 import com.clinic.exception.ValidationException;
-import com.clinic.model.Appointment;
 import com.clinic.model.Requester;
 import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.BeforeEach;

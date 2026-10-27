@@ -1,4 +1,4 @@
-package com.clinic.model;
+package com.clinic.appointment;
 
 /**
  * Lifecycle of an appointment. Only SCHEDULED can change; every other status is final.

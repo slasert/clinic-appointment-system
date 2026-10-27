@@ -16,6 +16,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Locale;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -193,6 +195,21 @@ class BookingTest extends ServiceTestBase {
         clock.setTo(TUESDAY.atTime(8, 0));
 
         assertDoesNotThrow(() -> service.book(PATIENT_1, DOCTOR_1, tuesdayAt(14, 0)));
+    }
+
+    @Test
+    @DisplayName("TC-B-17 [DEF-02] appointment IDs do not depend on the default locale")
+    void idsAreLocaleIndependent() {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG"));
+
+            Appointment a = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
+
+            assertEquals("A0001", a.getId());
+        } finally {
+            Locale.setDefault(original);
+        }
     }
 
     @ParameterizedTest(name = "TC-B-14 unknown patient ID \"{0}\" is rejected")

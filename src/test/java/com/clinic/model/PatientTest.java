@@ -8,6 +8,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.text.Normalizer;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -43,6 +45,18 @@ class PatientTest {
         Patient patient = new Patient(VALID_ID, "Şükrü Çağlar-Öz O'Neil", 30);
 
         assertEquals("Şükrü Çağlar-Öz O'Neil", patient.getName());
+    }
+
+    @Test
+    @Tag("EP")
+    @DisplayName("TC-P-12 [DEF-03] a name in decomposed Unicode (NFD) is accepted and stored composed (NFC)")
+    void decomposedNameAccepted() {
+        String composed = "Şükrü Çelik";
+        String decomposed = Normalizer.normalize(composed, Normalizer.Form.NFD);
+
+        Patient patient = new Patient(VALID_ID, decomposed, 30);
+
+        assertEquals(composed, patient.getName());
     }
 
     @ParameterizedTest(name = "TC-P-03 invalid ID \"{0}\" is rejected")

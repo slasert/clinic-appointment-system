@@ -133,6 +133,26 @@ public class AppointmentService {
         appointment.markNoShow();
     }
 
+    /**
+     * Adds a staff note to an appointment (any status). Notes are 1..200 characters
+     * after trimming, at most 5 per appointment.
+     */
+    public void addNote(String appointmentId, String note) {
+        Appointment appointment = findAppointment(appointmentId);
+        if (note == null || note.isBlank()) {
+            throw new ValidationException("Note cannot be empty");
+        }
+        String trimmed = note.trim();
+        if (trimmed.length() > ClinicRules.MAX_NOTE_LENGTH) {
+            throw new ValidationException("Note cannot be longer than " + ClinicRules.MAX_NOTE_LENGTH + " characters");
+        }
+        if (appointment.getNotes().size() >= ClinicRules.MAX_NOTES_PER_APPOINTMENT) {
+            throw new SchedulingException("An appointment can have at most "
+                    + ClinicRules.MAX_NOTES_PER_APPOINTMENT + " notes");
+        }
+        appointment.addNote(trimmed);
+    }
+
     // ---------------------------------------------------------------- queries
 
     public Appointment findAppointment(String appointmentId) {

@@ -5,6 +5,9 @@ import com.clinic.service.ClinicRules;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A single 30-minute appointment. Status changes are only allowed from SCHEDULED.
@@ -17,6 +20,7 @@ public final class Appointment {
     private final LocalDateTime start;
     private AppointmentStatus status = AppointmentStatus.SCHEDULED;
     private boolean lateCancellation;
+    private final List<String> notes = new ArrayList<>();
 
     public Appointment(String id, Patient patient, Doctor doctor, LocalDateTime start) {
         this.id = id;
@@ -40,6 +44,11 @@ public final class Appointment {
 
     public void markNoShow() {
         changeStatus(AppointmentStatus.NO_SHOW);
+    }
+
+    /** Notes are allowed in any status, e.g. to record why an appointment was cancelled. */
+    public void addNote(String note) {
+        notes.add(note);
     }
 
     private void changeStatus(AppointmentStatus newStatus) {
@@ -79,6 +88,10 @@ public final class Appointment {
 
     public boolean isLateCancellation() {
         return lateCancellation;
+    }
+
+    public List<String> getNotes() {
+        return Collections.unmodifiableList(notes);
     }
 
     @Override

@@ -42,6 +42,7 @@ $env:MAVEN_OPTS="-Djavax.net.ssl.trustStoreType=Windows-ROOT"
 | FR-07 | Rescheduling follows the cancellation policy and is atomic: the old appointment becomes RESCHEDULED and a new one is created, or nothing changes. |
 | FR-08 | Only SCHEDULED appointments can change status. COMPLETED is allowed from the start time, NO_SHOW from the end time. |
 | FR-09 | The system lists a doctor's daily schedule, a patient's appointment history and a doctor's free slots for a day. |
+| FR-10 | Staff can add notes to an appointment in any status: 1–200 characters after trimming, at most 5 notes per appointment. |
 
 ## Project structure
 
@@ -54,7 +55,7 @@ src/main/java/com/clinic/
 src/test/java/com/clinic/
   model/      PatientTest, DoctorTest
   service/    SlotValidationTest, BookingTest, CancellationTest, RescheduleTest,
-              StatusTransitionTest, ScheduleQueryTest
+              StatusTransitionTest, ScheduleQueryTest, NoteTest
   support/    MutableClock (controllable time), ServiceTestBase (shared fixture)
 ```
 

@@ -24,6 +24,8 @@ public final class ClinicRules {
     public static final int MAX_ADVANCE_DAYS = 30;
     public static final int FREE_CANCELLATION_HOURS = 24;
     public static final int MAX_ACTIVE_APPOINTMENTS_PER_PATIENT = 3;
+    public static final int MAX_NOTE_LENGTH = 200;
+    public static final int MAX_NOTES_PER_APPOINTMENT = 5;
 
     private ClinicRules() {
     }

@@ -9,10 +9,8 @@ import com.clinic.rules.BusinessRule;
 import com.clinic.rules.ClinicRules;
 
 import java.time.Clock;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -73,7 +71,7 @@ public class AppointmentService {
     public Appointment book(String patientId, String doctorId, LocalDateTime start) {
         Patient patient = findPatient(patientId);
         Doctor doctor = findDoctor(doctorId);
-        validateSlot(start);
+        TimeSlotPolicy.validate(start, now());
         checkAvailability(patient, doctor, start, null);
 
         Appointment appointment = new Appointment(nextId(), patient, doctor, start);
@@ -102,7 +100,7 @@ public class AppointmentService {
     public Appointment reschedule(String appointmentId, LocalDateTime newStart, Requester requester) {
         Appointment original = findAppointment(appointmentId);
         checkChangePolicy(original, requester);
-        validateSlot(newStart);
+        TimeSlotPolicy.validate(newStart, now());
         if (newStart.equals(original.getStart())) {
             throw new SchedulingException(BusinessRule.SAME_TIME_RESCHEDULE, "New time is the same as the current appointment time");
         }
@@ -197,11 +195,9 @@ public class AppointmentService {
         if (countDoctorAppointments(doctor, date, null) >= doctor.getDailyLimit()) {
             return free;
         }
-        for (LocalTime time = ClinicRules.OPENING_TIME;
-             !time.isAfter(ClinicRules.LAST_SLOT_START);
-             time = time.plusMinutes(ClinicRules.SLOT_MINUTES)) {
-            LocalDateTime start = date.atTime(time);
-            if (isBookableTime(start) && !isDoctorBusy(doctor, start, null)) {
+        LocalDateTime now = now();
+        for (LocalDateTime start : TimeSlotPolicy.dailySlots(date)) {
+            if (TimeSlotPolicy.findViolation(start, now).isEmpty() && !isDoctorBusy(doctor, start, null)) {
                 free.add(start);
             }
         }
@@ -209,47 +205,6 @@ public class AppointmentService {
     }
 
     // ---------------------------------------------------------------- rules
-
-    /** Throws if the start time breaks any time-related rule. */
-    void validateSlot(LocalDateTime start) {
-        if (start == null) {
-            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Start time cannot be null");
-        }
-        if (start.getSecond() != 0 || start.getNano() != 0
-                || start.getMinute() % ClinicRules.SLOT_MINUTES != 0) {
-            throw new ValidationException(BusinessRule.SLOT_ALIGNMENT, "Appointments must start on the hour or half hour");
-        }
-        DayOfWeek day = start.getDayOfWeek();
-        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
-            throw new SchedulingException(BusinessRule.WORKING_DAY, "The clinic is closed on weekends");
-        }
-        LocalTime time = start.toLocalTime();
-        if (time.isBefore(ClinicRules.OPENING_TIME) || time.isAfter(ClinicRules.LAST_SLOT_START)) {
-            throw new SchedulingException(BusinessRule.WORKING_HOURS, "Appointments must be between "
-                    + ClinicRules.OPENING_TIME + " and " + ClinicRules.CLOSING_TIME);
-        }
-        if (!time.isBefore(ClinicRules.LUNCH_START) && time.isBefore(ClinicRules.LUNCH_END)) {
-            throw new SchedulingException(BusinessRule.LUNCH_BREAK, "No appointments during the lunch break");
-        }
-        LocalDateTime now = now();
-        if (start.isBefore(now.plusHours(ClinicRules.MIN_LEAD_HOURS))) {
-            throw new SchedulingException(BusinessRule.MIN_LEAD_TIME, "Appointments must be booked at least "
-                    + ClinicRules.MIN_LEAD_HOURS + " hour in advance");
-        }
-        if (start.toLocalDate().isAfter(now.toLocalDate().plusDays(ClinicRules.MAX_ADVANCE_DAYS))) {
-            throw new SchedulingException(BusinessRule.MAX_ADVANCE, "Appointments cannot be booked more than "
-                    + ClinicRules.MAX_ADVANCE_DAYS + " days ahead");
-        }
-    }
-
-    private boolean isBookableTime(LocalDateTime start) {
-        try {
-            validateSlot(start);
-            return true;
-        } catch (ValidationException | SchedulingException e) {
-            return false;
-        }
-    }
 
     /**
      * Checks conflicts and limits. {@code ignored} is the appointment being

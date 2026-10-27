@@ -1,0 +1,51 @@
+﻿Clinic Appointment Management System - demo
+Current time: 2026-11-02T08:00
+
+== 1. Registering patients and doctors ==
+[OK]       2 doctors and 2 patients registered
+[REJECTED] Register patient with a 10-digit ID
+           [BR-01] Patient ID must be 11 digits and cannot start with 0
+
+== 2. Booking an appointment ==
+[OK]       Mehmet Kaya with D1 on Tuesday 10:00
+
+== 3. Rejecting an overlapping appointment ==
+[REJECTED] Zeynep Demir with D1 on Tuesday 10:00 (doctor busy)
+           [BR-15] Dr. Ayse Yilmaz (Cardiology) already has an appointment at 2026-11-03T10:00
+[REJECTED] Mehmet Kaya with D2 on Tuesday 10:00 (patient busy)
+           [BR-16] Mehmet Kaya (123******01) already has an appointment at 2026-11-03T10:00
+[OK]       Zeynep Demir with D1 on Tuesday 10:30 (back-to-back is fine)
+
+== 4. Rejecting invalid time slots ==
+[REJECTED] Tuesday 12:30 (lunch break)
+           [BR-12] No appointments during the 12:00-13:00 lunch break (requested 2026-11-03T12:30)
+[REJECTED] Saturday 10:00 (weekend)
+           [BR-10] The clinic is closed on weekends (requested 2026-11-07T10:00)
+[REJECTED] Tuesday 10:15 (not on a slot boundary)
+           [BR-09] Appointments must start on the hour or half hour (requested 2026-11-03T10:15)
+[REJECTED] Monday 08:30 (before opening)
+           [BR-11] Appointments must start between 09:00 and 16:30 (requested 2026-11-02T08:30)
+[REJECTED] Last Friday 10:00 (in the past)
+           [BR-13] Appointments must be booked at least 1 hour(s) in advance (requested 2026-10-30T10:00)
+
+== 5. Rescheduling ==
+[OK]       Move A0001 to Tuesday 14:00 (patient, >24h before)
+           old appointment is now RESCHEDULED
+
+== 6. Cancelling ==
+[OK]       A0004 2026-11-02T15:00 Zeynep Demir -> Dr. Can Ozturk (Dermatology) [SCHEDULED] booked for this afternoon
+[REJECTED] Patient cancels A0004 (7 hours before)
+           [BR-19] Patients cannot change an appointment less than 24 hours before it starts; please contact the clinic
+[OK]       Staff cancels A0004 (7 hours before)
+[OK]       Patient cancels A0003 (more than 24 hours before)
+
+== 7. Cancellation outcomes ==
+  A0004  status=CANCELLED late=true  notes=[Patient called: family emergency]
+  A0003  status=CANCELLED late=false notes=[]
+
+== 8. Doctor schedule for Tuesday ==
+  D1:
+    A0002 2026-11-03T10:30 Zeynep Demir -> Dr. Ayse Yilmaz (Cardiology) [SCHEDULED]
+    free slots: 13 of 14
+  D2:
+    free slots: 14 of 14

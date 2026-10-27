@@ -3,6 +3,7 @@ package com.clinic.appointment;
 import com.clinic.exception.SchedulingException;
 import com.clinic.exception.ValidationException;
 import com.clinic.model.Requester;
+import com.clinic.rules.BusinessRule;
 import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.List;
+
+import static com.clinic.support.RuleAssertions.assertRejected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,7 +40,7 @@ class NoteTest extends ServiceTestBase {
     void validNote() {
         service.addNote(appointment.getId(), "  Patient asked for a morning slot  ");
 
-        assertEquals("Patient asked for a morning slot", appointment.getNotes().get(0));
+        assertEquals(List.of("Patient asked for a morning slot"), appointment.getNotes());
     }
 
     @ParameterizedTest(name = "TC-N-02 note of length {0} is accepted")
@@ -53,7 +57,8 @@ class NoteTest extends ServiceTestBase {
     @Tag("Negative")
     @DisplayName("TC-N-03 note of 201 characters is rejected")
     void noteTooLongRejected() {
-        assertThrows(ValidationException.class, () -> service.addNote(appointment.getId(), "x".repeat(201)));
+        assertRejected(ValidationException.class, BusinessRule.NOTE_LENGTH,
+                () -> service.addNote(appointment.getId(), "x".repeat(201)));
         assertTrue(appointment.getNotes().isEmpty());
     }
 
@@ -62,7 +67,9 @@ class NoteTest extends ServiceTestBase {
     @NullAndEmptySource
     @ValueSource(strings = {"   ", "\t\n"})
     void emptyNoteRejected(String note) {
-        assertThrows(ValidationException.class, () -> service.addNote(appointment.getId(), note));
+        assertRejected(ValidationException.class, BusinessRule.NOTE_LENGTH,
+                () -> service.addNote(appointment.getId(), note));
+        assertTrue(appointment.getNotes().isEmpty());
     }
 
     @Test
@@ -74,7 +81,8 @@ class NoteTest extends ServiceTestBase {
             service.addNote(appointment.getId(), "Note " + i);
         }
 
-        assertThrows(SchedulingException.class, () -> service.addNote(appointment.getId(), "Note 6"));
+        assertRejected(SchedulingException.class, BusinessRule.NOTE_LIMIT,
+                () -> service.addNote(appointment.getId(), "Note 6"));
         assertEquals(5, appointment.getNotes().size());
     }
 
@@ -82,6 +90,7 @@ class NoteTest extends ServiceTestBase {
     @DisplayName("TC-N-06 a note can be added to a cancelled appointment to record the reason")
     void noteOnCancelledAppointment() {
         service.cancel(appointment.getId(), Requester.PATIENT);
+
         service.addNote(appointment.getId(), "Cancelled by phone, patient is travelling");
 
         assertEquals(1, appointment.getNotes().size());
@@ -89,15 +98,17 @@ class NoteTest extends ServiceTestBase {
 
     @Test
     @Tag("Negative")
-    @DisplayName("TC-N-07 notes list cannot be modified from outside")
+    @DisplayName("TC-N-07 the notes list cannot be modified from outside")
     void notesAreReadOnly() {
-        assertThrows(UnsupportedOperationException.class, () -> appointment.getNotes().add("hack"));
+        assertThrows(UnsupportedOperationException.class, () -> appointment.getNotes().add("x".repeat(500)));
+        assertTrue(appointment.getNotes().isEmpty());
     }
 
     @Test
     @Tag("Negative")
-    @DisplayName("TC-N-08 note for an unknown appointment is rejected")
+    @DisplayName("TC-N-08 note for an unknown or null appointment is rejected")
     void unknownAppointmentRejected() {
-        assertThrows(ValidationException.class, () -> service.addNote("A9999", "text"));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE, () -> service.addNote("A9999", "text"));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE, () -> service.addNote(null, "text"));
     }
 }

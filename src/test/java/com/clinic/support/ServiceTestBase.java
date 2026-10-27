@@ -1,16 +1,17 @@
 package com.clinic.support;
 
+import com.clinic.appointment.AppointmentService;
 import com.clinic.model.Doctor;
 import com.clinic.model.Patient;
-import com.clinic.appointment.AppointmentService;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.stream.Stream;
 
 /**
  * Common fixture: a fresh service for every test, "now" = Monday 2 Nov 2026 08:00,
- * two doctors and four patients.
+ * three doctors and four patients. Each test gets its own instances, so tests are independent.
  */
 public abstract class ServiceTestBase {
 
@@ -20,6 +21,7 @@ public abstract class ServiceTestBase {
 
     protected static final String DOCTOR_1 = "D1";
     protected static final String DOCTOR_2 = "D2";
+    /** Doctor with a daily limit of 2, used for limit boundaries. */
     protected static final String LIMITED_DOCTOR = "D3";
     protected static final String PATIENT_1 = "12345678901";
     protected static final String PATIENT_2 = "23456789012";
@@ -44,5 +46,12 @@ public abstract class ServiceTestBase {
 
     protected static LocalDateTime tuesdayAt(int hour, int minute) {
         return TUESDAY.atTime(hour, minute);
+    }
+
+    /** Number of appointments (any status) stored for all fixture patients. Used to prove a rejection changed nothing. */
+    protected int storedAppointments() {
+        return Stream.of(PATIENT_1, PATIENT_2, PATIENT_3, PATIENT_4)
+                .mapToInt(p -> service.getPatientAppointments(p).size())
+                .sum();
     }
 }

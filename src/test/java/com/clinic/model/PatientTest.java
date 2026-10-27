@@ -1,6 +1,7 @@
 package com.clinic.model;
 
 import com.clinic.exception.ValidationException;
+import com.clinic.rules.BusinessRule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -10,16 +11,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.text.Normalizer;
 
+import static com.clinic.support.RuleAssertions.assertRejected;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * FR-01 Patient registration data.
- * <ul>
- *   <li>ID: valid class = 11 digits not starting with 0; invalid = shorter, longer, non-digit, leading 0, null/empty</li>
- *   <li>Name: valid length 2..50 after trimming, letters/spaces/hyphen/apostrophe</li>
- *   <li>Age: valid 0..120</li>
- * </ul>
+ *
+ * <pre>
+ * Input  Valid classes                         Invalid classes
+ * ID     11 digits, first digit 1-9            10 / 12 digits, leading 0, letter, space, sign, null, empty
+ * Name   2-50 chars, letters/space/-/'          null, blank, 1 char, 51 chars, digit, symbol, starts with - or '
+ * Age    0..120                                &lt; 0, &gt; 120
+ * </pre>
  */
 @DisplayName("FR-01 Patient validation")
 class PatientTest {
@@ -29,13 +33,14 @@ class PatientTest {
 
     @Test
     @Tag("EP")
-    @DisplayName("TC-P-01 valid patient is created with trimmed name")
+    @DisplayName("TC-P-01 valid patient is created and the name is trimmed")
     void validPatient() {
         Patient patient = new Patient(VALID_ID, "  Mehmet Kaya  ", 45);
 
-        assertEquals(VALID_ID, patient.getId());
-        assertEquals("Mehmet Kaya", patient.getName());
-        assertEquals(45, patient.getAge());
+        assertAll(
+                () -> assertEquals(VALID_ID, patient.getId()),
+                () -> assertEquals("Mehmet Kaya", patient.getName()),
+                () -> assertEquals(45, patient.getAge()));
     }
 
     @Test
@@ -47,20 +52,9 @@ class PatientTest {
         assertEquals("Şükrü Çağlar-Öz O'Neil", patient.getName());
     }
 
-    @Test
-    @Tag("EP")
-    @DisplayName("TC-P-12 [DEF-03] a name in decomposed Unicode (NFD) is accepted and stored composed (NFC)")
-    void decomposedNameAccepted() {
-        String composed = "Şükrü Çelik";
-        String decomposed = Normalizer.normalize(composed, Normalizer.Form.NFD);
-
-        Patient patient = new Patient(VALID_ID, decomposed, 30);
-
-        assertEquals(composed, patient.getName());
-    }
-
     @ParameterizedTest(name = "TC-P-03 invalid ID \"{0}\" is rejected")
     @Tag("EP")
+    @Tag("BVA")
     @Tag("Negative")
     @ValueSource(strings = {
             "1234567890",    // 10 digits (BVA: length - 1)
@@ -71,14 +65,14 @@ class PatientTest {
             "-1234567890"    // sign character
     })
     void invalidIdRejected(String id) {
-        assertThrows(ValidationException.class, () -> new Patient(id, VALID_NAME, 30));
+        assertRejected(ValidationException.class, BusinessRule.PATIENT_ID_FORMAT, () -> new Patient(id, VALID_NAME, 30));
     }
 
-    @ParameterizedTest(name = "TC-P-04 null/empty ID is rejected")
+    @ParameterizedTest(name = "TC-P-04 null/empty ID \"{0}\" is rejected")
     @Tag("Negative")
     @NullAndEmptySource
     void nullOrEmptyIdRejected(String id) {
-        assertThrows(ValidationException.class, () -> new Patient(id, VALID_NAME, 30));
+        assertRejected(ValidationException.class, BusinessRule.PATIENT_ID_FORMAT, () -> new Patient(id, VALID_NAME, 30));
     }
 
     @ParameterizedTest(name = "TC-P-05 age {0} is accepted")
@@ -93,7 +87,7 @@ class PatientTest {
     @Tag("Negative")
     @ValueSource(ints = {-1, 121, Integer.MIN_VALUE, Integer.MAX_VALUE})
     void ageOutsideBoundariesRejected(int age) {
-        assertThrows(ValidationException.class, () -> new Patient(VALID_ID, VALID_NAME, age));
+        assertRejected(ValidationException.class, BusinessRule.PATIENT_AGE_RANGE, () -> new Patient(VALID_ID, VALID_NAME, age));
     }
 
     @ParameterizedTest(name = "TC-P-07 name of length {0} is accepted")
@@ -101,6 +95,7 @@ class PatientTest {
     @ValueSource(ints = {2, 3, 49, 50})
     void nameLengthBoundariesAccepted(int length) {
         String name = "a".repeat(length);
+
         assertEquals(name, new Patient(VALID_ID, name, 30).getName());
     }
 
@@ -110,7 +105,8 @@ class PatientTest {
     @ValueSource(ints = {1, 51})
     void nameLengthOutsideBoundariesRejected(int length) {
         String name = "a".repeat(length);
-        assertThrows(ValidationException.class, () -> new Patient(VALID_ID, name, 30));
+
+        assertRejected(ValidationException.class, BusinessRule.NAME_FORMAT, () -> new Patient(VALID_ID, name, 30));
     }
 
     @Test
@@ -118,6 +114,7 @@ class PatientTest {
     @DisplayName("TC-P-09 surrounding spaces do not count towards the 50 character limit")
     void lengthIsMeasuredAfterTrimming() {
         String name = "  " + "a".repeat(50) + "  ";
+
         assertEquals(50, new Patient(VALID_ID, name, 30).getName().length());
     }
 
@@ -127,15 +124,7 @@ class PatientTest {
     @NullAndEmptySource
     @ValueSource(strings = {"   ", "Mehmet3", "Ali@Veli", "-Ali", "'Ali"})
     void invalidNameRejected(String name) {
-        assertThrows(ValidationException.class, () -> new Patient(VALID_ID, name, 30));
-    }
-
-    @Test
-    @DisplayName("TC-P-13 the national ID is masked in text output")
-    void idIsMaskedInToString() {
-        Patient patient = new Patient(VALID_ID, VALID_NAME, 45);
-
-        assertEquals("Mehmet Kaya (123******01)", patient.toString());
+        assertRejected(ValidationException.class, BusinessRule.NAME_FORMAT, () -> new Patient(VALID_ID, name, 30));
     }
 
     @Test
@@ -146,5 +135,25 @@ class PatientTest {
 
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    @Tag("EP")
+    @DisplayName("TC-P-12 [DEF-03] a name in decomposed Unicode (NFD) is accepted and stored composed (NFC)")
+    void decomposedNameAccepted() {
+        String composed = "Şükrü Çelik";
+        String decomposed = Normalizer.normalize(composed, Normalizer.Form.NFD);
+
+        Patient patient = new Patient(VALID_ID, decomposed, 30);
+
+        assertEquals(composed, patient.getName());
+    }
+
+    @Test
+    @DisplayName("TC-P-13 the national ID is masked in text output")
+    void idIsMaskedInToString() {
+        Patient patient = new Patient(VALID_ID, VALID_NAME, 45);
+
+        assertEquals("Mehmet Kaya (123******01)", patient.toString());
     }
 }

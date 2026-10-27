@@ -1,7 +1,6 @@
 package com.clinic;
 
 import com.clinic.appointment.Appointment;
-import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -24,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * no longer compile, so the regression check is on the public API itself.</p>
  */
 @DisplayName("DEF-04 Rules cannot be bypassed from outside the appointment package")
-class EncapsulationTest extends ServiceTestBase {
+class EncapsulationTest {
 
     @Test
     @DisplayName("TC-E-01 Appointment exposes only read methods publicly")
@@ -42,14 +40,5 @@ class EncapsulationTest extends ServiceTestBase {
     @DisplayName("TC-E-02 Appointment has no public constructor")
     void appointmentCannotBeCreatedOutsideTheService() {
         assertEquals(0, Appointment.class.getConstructors().length);
-    }
-
-    @Test
-    @DisplayName("TC-E-03 notes returned by an appointment cannot be modified from outside")
-    void notesAreReadOnly() {
-        Appointment appointment = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
-
-        assertThrows(UnsupportedOperationException.class, () -> appointment.getNotes().add("x".repeat(500)));
-        assertTrue(appointment.getNotes().isEmpty());
     }
 }

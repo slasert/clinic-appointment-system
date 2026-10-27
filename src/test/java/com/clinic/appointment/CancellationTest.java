@@ -3,6 +3,7 @@ package com.clinic.appointment;
 import com.clinic.exception.SchedulingException;
 import com.clinic.exception.ValidationException;
 import com.clinic.model.Requester;
+import com.clinic.rules.BusinessRule;
 import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,23 +16,21 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import static com.clinic.support.RuleAssertions.assertRejected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * FR-06 Cancellation policy. The appointment is on Tuesday 10:00.
  *
  * <pre>
- *                               R1   R2   R3   R4   R5   R6
- * Status is SCHEDULED            Y    Y    Y    Y    Y    N
- * Time left before start      >=24h >=24h <24h <24h  <=0   -
- * Requester                      P    S    P    S    -    -
- * ----------------------------------------------------------
- * Cancelled (normal)             X    X
- * Cancelled (late flag)                         X
- * Rejected                                 X         X    X
+ *                               R1    R2    R3    R4    R5    R6
+ * Status is SCHEDULED            Y     Y     Y     Y     Y     N
+ * Time left before start      &gt;=24h &gt;=24h  &lt;24h  &lt;24h  &lt;=0    -
+ * Requester                      P     S     P     S     -     -
+ * --------------------------------------------------------------
+ * Result                      CANCEL CANCEL BR-19 CANCEL BR-20 BR-21
+ * Late flag                     no    no     -    yes    -     -
  * </pre>
  */
 @DisplayName("FR-06 Cancellation policy")
@@ -73,7 +72,8 @@ class CancellationTest extends ServiceTestBase {
     void patientLateCancellationRejected(Duration before) {
         clock.setTo(APPOINTMENT_START.minus(before));
 
-        assertThrows(SchedulingException.class, () -> service.cancel(appointment.getId(), Requester.PATIENT));
+        assertRejected(SchedulingException.class, BusinessRule.LATE_CHANGE,
+                () -> service.cancel(appointment.getId(), Requester.PATIENT));
         assertEquals(AppointmentStatus.SCHEDULED, appointment.getStatus());
     }
 
@@ -84,10 +84,14 @@ class CancellationTest extends ServiceTestBase {
     @EnumSource(Requester.class)   // R5
     void cancelAfterStartRejected(Requester requester) {
         clock.setTo(APPOINTMENT_START);
-        assertThrows(SchedulingException.class, () -> service.cancel(appointment.getId(), requester));
+        assertRejected(SchedulingException.class, BusinessRule.ALREADY_STARTED,
+                () -> service.cancel(appointment.getId(), requester));
 
         clock.setTo(APPOINTMENT_START.plusMinutes(1));
-        assertThrows(SchedulingException.class, () -> service.cancel(appointment.getId(), requester));
+        assertRejected(SchedulingException.class, BusinessRule.ALREADY_STARTED,
+                () -> service.cancel(appointment.getId(), requester));
+
+        assertEquals(AppointmentStatus.SCHEDULED, appointment.getStatus());
     }
 
     @Test
@@ -97,16 +101,17 @@ class CancellationTest extends ServiceTestBase {
     void doubleCancellationRejected() {
         service.cancel(appointment.getId(), Requester.PATIENT);
 
-        SchedulingException e = assertThrows(SchedulingException.class,
+        assertRejected(SchedulingException.class, BusinessRule.STATUS_FINAL,
                 () -> service.cancel(appointment.getId(), Requester.STAFF));
-        assertTrue(e.getMessage().contains("CANCELLED"));
+        assertFalse(appointment.isLateCancellation());
     }
 
     @Test
     @Tag("Negative")
-    @DisplayName("TC-C-05 null requester is rejected")
+    @DisplayName("TC-C-05 null requester is rejected and the appointment stays SCHEDULED")
     void nullRequesterRejected() {
-        assertThrows(ValidationException.class, () -> service.cancel(appointment.getId(), null));
+        assertRejected(ValidationException.class, BusinessRule.REQUIRED_INPUT,
+                () -> service.cancel(appointment.getId(), null));
         assertEquals(AppointmentStatus.SCHEDULED, appointment.getStatus());
     }
 
@@ -114,8 +119,10 @@ class CancellationTest extends ServiceTestBase {
     @Tag("Negative")
     @DisplayName("TC-C-06 unknown or null appointment ID is rejected")
     void unknownAppointmentRejected() {
-        assertThrows(ValidationException.class, () -> service.cancel("A9999", Requester.STAFF));
-        assertThrows(ValidationException.class, () -> service.cancel(null, Requester.STAFF));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE,
+                () -> service.cancel("A9999", Requester.STAFF));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE,
+                () -> service.cancel(null, Requester.STAFF));
     }
 
     @Test
@@ -124,5 +131,14 @@ class CancellationTest extends ServiceTestBase {
         service.cancel(appointment.getId(), Requester.STAFF);
 
         assertFalse(appointment.isLateCancellation());
+    }
+
+    @Test
+    @DisplayName("TC-C-08 a cancelled appointment leaves the doctor's schedule but stays in the patient history")
+    void cancelledAppointmentLeavesSchedule() {
+        service.cancel(appointment.getId(), Requester.STAFF);
+
+        assertEquals(0, service.getDoctorSchedule(DOCTOR_1, TUESDAY).size());
+        assertEquals(1, service.getPatientAppointments(PATIENT_1).size());
     }
 }

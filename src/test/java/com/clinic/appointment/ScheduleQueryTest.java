@@ -2,6 +2,7 @@ package com.clinic.appointment;
 
 import com.clinic.exception.ValidationException;
 import com.clinic.model.Requester;
+import com.clinic.rules.BusinessRule;
 import com.clinic.rules.ClinicRules;
 import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.clinic.support.RuleAssertions.assertRejected;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,6 +44,7 @@ class ScheduleQueryTest extends ServiceTestBase {
         assertFalse(service.getAvailableSlots(DOCTOR_1, TUESDAY).contains(tuesdayAt(10, 0)));
 
         service.cancel(a.getId(), Requester.PATIENT);
+
         assertTrue(service.getAvailableSlots(DOCTOR_1, TUESDAY).contains(tuesdayAt(10, 0)));
     }
 
@@ -79,9 +82,11 @@ class ScheduleQueryTest extends ServiceTestBase {
         clock.setTo(MONDAY.atTime(10, 0));
         String[] patients = {PATIENT_1, PATIENT_2, PATIENT_3, PATIENT_4};
         int i = 0;
+
         for (LocalDateTime slot : service.getAvailableSlots(DOCTOR_2, MONDAY)) {
             service.book(patients[i++ % patients.length], DOCTOR_2, slot);
         }
+
         assertTrue(service.getAvailableSlots(DOCTOR_2, MONDAY).isEmpty());
     }
 
@@ -117,12 +122,30 @@ class ScheduleQueryTest extends ServiceTestBase {
 
     @Test
     @Tag("Negative")
-    @DisplayName("TC-Q-09 queries with unknown IDs or null date are rejected")
+    @DisplayName("TC-Q-09 queries with unknown IDs or a null date are rejected")
     void invalidQueryArguments() {
-        assertThrows(ValidationException.class, () -> service.getAvailableSlots("D99", TUESDAY));
-        assertThrows(ValidationException.class, () -> service.getAvailableSlots(DOCTOR_1, null));
-        assertThrows(ValidationException.class, () -> service.getDoctorSchedule(DOCTOR_1, null));
-        assertThrows(ValidationException.class, () -> service.getPatientAppointments("99999999999"));
-        assertThrows(ValidationException.class, () -> service.findAppointment("A0001"));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE, () -> service.getAvailableSlots("D99", TUESDAY));
+        assertRejected(ValidationException.class, BusinessRule.REQUIRED_INPUT, () -> service.getAvailableSlots(DOCTOR_1, null));
+        assertRejected(ValidationException.class, BusinessRule.REQUIRED_INPUT, () -> service.getDoctorSchedule(DOCTOR_1, null));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE, () -> service.getPatientAppointments("99999999999"));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE, () -> service.findAppointment("A0001"));
+    }
+
+    @Test
+    @Tag("EP")
+    @DisplayName("TC-Q-10 a past date has no free slots")
+    void noSlotsInThePast() {
+        assertTrue(service.getAvailableSlots(DOCTOR_1, LocalDate.of(2026, 10, 30)).isEmpty());
+    }
+
+    @Test
+    @Tag("Negative")
+    @DisplayName("TC-Q-11 returned lists are read-only, so callers cannot corrupt the schedule")
+    void returnedListsAreReadOnly() {
+        Appointment a = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
+
+        assertThrows(UnsupportedOperationException.class, () -> service.getDoctorSchedule(DOCTOR_1, TUESDAY).clear());
+        assertThrows(UnsupportedOperationException.class, () -> service.getPatientAppointments(PATIENT_1).remove(a));
+        assertEquals(1, service.getDoctorSchedule(DOCTOR_1, TUESDAY).size());
     }
 }

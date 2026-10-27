@@ -5,6 +5,7 @@ import com.clinic.exception.ValidationException;
 import com.clinic.model.Doctor;
 import com.clinic.model.Patient;
 import com.clinic.model.Requester;
+import com.clinic.rules.BusinessRule;
 import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,17 +17,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Locale;
 
+import static com.clinic.support.RuleAssertions.assertRejected;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * FR-04 Booking: conflicts and limits.
+ * FR-04 Booking: conflicts and limits; FR-05 registration.
  *
- * <p>Decision table for a booking request with a valid time slot:</p>
+ * <p>Decision table for a booking request with a valid time slot (conditions are checked in this order):</p>
  * <pre>
  *                      R1  R2  R3  R4  R5
  * Doctor free           Y   N   Y   Y   Y
@@ -34,8 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Doctor under limit    Y   -   -   N   Y
  * Patient under limit   Y   -   -   -   N
  * ---------------------------------------
- * Booked                X
- * Rejected                  X   X   X   X
+ * Result              BOOK BR15 BR16 BR17 BR18
  * </pre>
  */
 @DisplayName("FR-04 Booking")
@@ -54,7 +53,8 @@ class BookingTest extends ServiceTestBase {
                 () -> assertEquals(tuesdayAt(10, 0), a.getStart()),
                 () -> assertEquals(tuesdayAt(10, 30), a.getEnd()),
                 () -> assertEquals(AppointmentStatus.SCHEDULED, a.getStatus()),
-                () -> assertFalse(a.isLateCancellation()));
+                () -> assertFalse(a.isLateCancellation()),
+                () -> assertEquals(a, service.findAppointment("A0001")));
     }
 
     @Test
@@ -63,7 +63,7 @@ class BookingTest extends ServiceTestBase {
         Appointment first = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
         Appointment second = service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 30));
 
-        assertNotEquals(first.getId(), second.getId());
+        assertEquals("A0001", first.getId());
         assertEquals("A0002", second.getId());
     }
 
@@ -75,7 +75,10 @@ class BookingTest extends ServiceTestBase {
         @Tag("DecisionTable")
         @DisplayName("TC-B-03 R1 all conditions true -> booked")
         void r1Booked() {
-            assertDoesNotThrow(() -> service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0)));
+            Appointment a = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
+
+            assertEquals(AppointmentStatus.SCHEDULED, a.getStatus());
+            assertEquals(1, storedAppointments());
         }
 
         @Test
@@ -85,7 +88,9 @@ class BookingTest extends ServiceTestBase {
         void r2DoctorBusy() {
             service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
 
-            assertThrows(SchedulingException.class, () -> service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 0)));
+            assertRejected(SchedulingException.class, BusinessRule.DOCTOR_CONFLICT,
+                    () -> service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 0)));
+            assertEquals(1, storedAppointments());
         }
 
         @Test
@@ -95,7 +100,9 @@ class BookingTest extends ServiceTestBase {
         void r3PatientBusy() {
             service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
 
-            assertThrows(SchedulingException.class, () -> service.book(PATIENT_1, DOCTOR_2, tuesdayAt(10, 0)));
+            assertRejected(SchedulingException.class, BusinessRule.PATIENT_CONFLICT,
+                    () -> service.book(PATIENT_1, DOCTOR_2, tuesdayAt(10, 0)));
+            assertEquals(1, storedAppointments());
         }
 
         @Test
@@ -104,9 +111,11 @@ class BookingTest extends ServiceTestBase {
         @DisplayName("TC-B-06 R4 doctor daily limit (2): 2nd booking accepted, 3rd rejected")
         void r4DoctorLimitReached() {
             service.book(PATIENT_1, LIMITED_DOCTOR, tuesdayAt(9, 0));
-            assertDoesNotThrow(() -> service.book(PATIENT_2, LIMITED_DOCTOR, tuesdayAt(9, 30)));
+            service.book(PATIENT_2, LIMITED_DOCTOR, tuesdayAt(9, 30));   // at the limit: accepted
 
-            assertThrows(SchedulingException.class, () -> service.book(PATIENT_3, LIMITED_DOCTOR, tuesdayAt(10, 0)));
+            assertRejected(SchedulingException.class, BusinessRule.DOCTOR_DAILY_LIMIT,
+                    () -> service.book(PATIENT_3, LIMITED_DOCTOR, tuesdayAt(10, 0)));
+            assertEquals(2, storedAppointments());
         }
 
         @Test
@@ -116,9 +125,11 @@ class BookingTest extends ServiceTestBase {
         void r5PatientLimitReached() {
             service.book(PATIENT_1, DOCTOR_1, tuesdayAt(9, 0));
             service.book(PATIENT_1, DOCTOR_1, tuesdayAt(9, 30));
-            assertDoesNotThrow(() -> service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0)));
+            service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));         // at the limit: accepted
 
-            assertThrows(SchedulingException.class, () -> service.book(PATIENT_1, DOCTOR_2, tuesdayAt(14, 0)));
+            assertRejected(SchedulingException.class, BusinessRule.PATIENT_ACTIVE_LIMIT,
+                    () -> service.book(PATIENT_1, DOCTOR_2, tuesdayAt(14, 0)));
+            assertEquals(3, storedAppointments());
         }
     }
 
@@ -128,7 +139,32 @@ class BookingTest extends ServiceTestBase {
     void differentDoctorsSameTime() {
         service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
 
-        assertDoesNotThrow(() -> service.book(PATIENT_2, DOCTOR_2, tuesdayAt(10, 0)));
+        service.book(PATIENT_2, DOCTOR_2, tuesdayAt(10, 0));
+
+        assertEquals(2, storedAppointments());
+    }
+
+    @Test
+    @Tag("BVA")
+    @DisplayName("TC-B-18 doctor back-to-back: slots directly before and after a booked slot are free")
+    void doctorBackToBackAllowed() {
+        service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
+
+        service.book(PATIENT_2, DOCTOR_1, tuesdayAt(9, 30));
+        service.book(PATIENT_3, DOCTOR_1, tuesdayAt(10, 30));
+
+        assertEquals(3, service.getDoctorSchedule(DOCTOR_1, TUESDAY).size());
+    }
+
+    @Test
+    @Tag("BVA")
+    @DisplayName("TC-B-19 patient back-to-back with two doctors is allowed")
+    void patientBackToBackAllowed() {
+        service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
+
+        service.book(PATIENT_1, DOCTOR_2, tuesdayAt(10, 30));
+
+        assertEquals(2, service.getPatientAppointments(PATIENT_1).size());
     }
 
     @Test
@@ -137,7 +173,9 @@ class BookingTest extends ServiceTestBase {
         Appointment a = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
         service.cancel(a.getId(), Requester.PATIENT);
 
-        assertDoesNotThrow(() -> service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 0)));
+        Appointment rebooked = service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 0));
+
+        assertEquals(AppointmentStatus.SCHEDULED, rebooked.getStatus());
     }
 
     @Test
@@ -147,7 +185,9 @@ class BookingTest extends ServiceTestBase {
         service.book(PATIENT_2, LIMITED_DOCTOR, tuesdayAt(9, 30));
         service.cancel(a.getId(), Requester.PATIENT);
 
-        assertDoesNotThrow(() -> service.book(PATIENT_3, LIMITED_DOCTOR, tuesdayAt(10, 0)));
+        service.book(PATIENT_3, LIMITED_DOCTOR, tuesdayAt(10, 0));
+
+        assertEquals(2, service.getDoctorSchedule(LIMITED_DOCTOR, TUESDAY).size());
     }
 
     @Test
@@ -158,7 +198,9 @@ class BookingTest extends ServiceTestBase {
         service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
         service.cancel(a.getId(), Requester.PATIENT);
 
-        assertDoesNotThrow(() -> service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 30)));
+        service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 30));
+
+        assertEquals(4, service.getPatientAppointments(PATIENT_1).size());
     }
 
     @Test
@@ -167,17 +209,22 @@ class BookingTest extends ServiceTestBase {
         service.book(PATIENT_1, LIMITED_DOCTOR, tuesdayAt(9, 0));
         service.book(PATIENT_2, LIMITED_DOCTOR, tuesdayAt(9, 30));
 
-        assertDoesNotThrow(() -> service.book(PATIENT_3, LIMITED_DOCTOR, TUESDAY.plusDays(1).atTime(9, 0)));
+        Appointment nextDay = service.book(PATIENT_3, LIMITED_DOCTOR, TUESDAY.plusDays(1).atTime(9, 0));
+
+        assertEquals(TUESDAY.plusDays(1), nextDay.getDate());
     }
 
     @Test
-    @DisplayName("TC-B-13 a failed booking does not change the system state")
+    @Tag("Negative")
+    @DisplayName("TC-B-13 a failed booking does not change schedules, history or the next ID")
     void failedBookingHasNoSideEffects() {
         service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0));
+
         assertThrows(SchedulingException.class, () -> service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 0)));
 
         assertEquals(0, service.getPatientAppointments(PATIENT_2).size());
         assertEquals(1, service.getDoctorSchedule(DOCTOR_1, TUESDAY).size());
+        assertEquals("A0002", service.book(PATIENT_2, DOCTOR_1, tuesdayAt(10, 30)).getId());
     }
 
     @Test
@@ -188,11 +235,12 @@ class BookingTest extends ServiceTestBase {
         service.book(PATIENT_1, DOCTOR_1, MONDAY.atTime(9, 0));
         service.book(PATIENT_1, DOCTOR_1, MONDAY.atTime(9, 30));
         service.book(PATIENT_1, DOCTOR_1, MONDAY.atTime(10, 0));
-
         // Next day: the three visits are over but staff never marked them COMPLETED.
         clock.setTo(TUESDAY.atTime(8, 0));
 
-        assertDoesNotThrow(() -> service.book(PATIENT_1, DOCTOR_1, tuesdayAt(14, 0)));
+        Appointment a = service.book(PATIENT_1, DOCTOR_1, tuesdayAt(14, 0));
+
+        assertEquals(AppointmentStatus.SCHEDULED, a.getStatus());
     }
 
     @Test
@@ -215,15 +263,19 @@ class BookingTest extends ServiceTestBase {
     @NullAndEmptySource
     @ValueSource(strings = {"99999999999"})
     void unknownPatientRejected(String patientId) {
-        assertThrows(ValidationException.class, () -> service.book(patientId, DOCTOR_1, tuesdayAt(10, 0)));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE,
+                () -> service.book(patientId, DOCTOR_1, tuesdayAt(10, 0)));
+        assertEquals(0, storedAppointments());
     }
 
     @ParameterizedTest(name = "TC-B-15 unknown doctor ID \"{0}\" is rejected")
     @Tag("Negative")
     @NullAndEmptySource
-    @ValueSource(strings = {"D99"})
+    @ValueSource(strings = {"D99", "d1"})
     void unknownDoctorRejected(String doctorId) {
-        assertThrows(ValidationException.class, () -> service.book(PATIENT_1, doctorId, tuesdayAt(10, 0)));
+        assertRejected(ValidationException.class, BusinessRule.KNOWN_REFERENCE,
+                () -> service.book(PATIENT_1, doctorId, tuesdayAt(10, 0)));
+        assertEquals(0, storedAppointments());
     }
 
     @Nested
@@ -232,26 +284,32 @@ class BookingTest extends ServiceTestBase {
 
         @Test
         @Tag("Negative")
-        @DisplayName("TC-R-01 registering the same patient ID twice is rejected")
+        @DisplayName("TC-R-01 registering the same patient ID twice is rejected; the first patient is kept")
         void duplicatePatientRejected() {
             Patient duplicate = new Patient(PATIENT_1, "Other Person", 20);
-            assertThrows(ValidationException.class, () -> service.registerPatient(duplicate));
+
+            assertRejected(ValidationException.class, BusinessRule.UNIQUE_ID, () -> service.registerPatient(duplicate));
+            assertEquals("Mehmet Kaya",
+                    service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0)).getPatient().getName());
         }
 
         @Test
         @Tag("Negative")
-        @DisplayName("TC-R-02 registering the same doctor ID twice is rejected")
+        @DisplayName("TC-R-02 registering the same doctor ID twice is rejected; the first doctor is kept")
         void duplicateDoctorRejected() {
             Doctor duplicate = new Doctor(DOCTOR_1, "Other Doctor", "Surgery", 5);
-            assertThrows(ValidationException.class, () -> service.registerDoctor(duplicate));
+
+            assertRejected(ValidationException.class, BusinessRule.UNIQUE_ID, () -> service.registerDoctor(duplicate));
+            assertEquals("Cardiology",
+                    service.book(PATIENT_1, DOCTOR_1, tuesdayAt(10, 0)).getDoctor().getSpecialty());
         }
 
         @Test
         @Tag("Negative")
         @DisplayName("TC-R-03 null patient/doctor is rejected")
         void nullRejected() {
-            assertThrows(ValidationException.class, () -> service.registerPatient(null));
-            assertThrows(ValidationException.class, () -> service.registerDoctor(null));
+            assertRejected(ValidationException.class, BusinessRule.REQUIRED_INPUT, () -> service.registerPatient(null));
+            assertRejected(ValidationException.class, BusinessRule.REQUIRED_INPUT, () -> service.registerDoctor(null));
         }
 
         @Test

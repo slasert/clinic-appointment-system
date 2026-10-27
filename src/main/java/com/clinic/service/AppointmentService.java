@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -349,6 +350,7 @@ public class AppointmentService {
     }
 
     private String nextId() {
-        return String.format("A%04d", nextAppointmentNumber++);
+        // Locale.ROOT keeps ASCII digits on every machine (DEF-02).
+        return String.format(Locale.ROOT, "A%04d", nextAppointmentNumber++);
     }
 }

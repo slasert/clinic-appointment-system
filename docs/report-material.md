@@ -2,7 +2,7 @@
 
 Technical material for the eight report sections required by the assignment. It is **source
 material to review and rewrite in your own words**, not the report itself. Every number here was
-measured on 2026-10-28 (run 14 and the JaCoCo report of that run).
+measured on 2026-10-28 (run 15, `mvnw clean test`, and the JaCoCo report of that run).
 
 ---
 
@@ -71,19 +71,19 @@ BVA table, traceability matrix). Key figures:
 | Equivalence partitioning | 16 |
 | Boundary value analysis | 35 |
 | Decision table | 18 (4 tables: booking, cancellation, reschedule, 5×4 status transitions) |
-| Negative | 53 |
-| Untagged functional | 26 |
+| Negative | 55 |
+| Untagged functional | 27 |
 
 ## 5. Test implementation and results
 
-- **Final result (run 14, `mvnw clean test`):** 111 test cases, **212 JUnit invocations, 212 passed,
+- **Final result (run 15, `mvnw clean test`):** 114 test cases, **215 JUnit invocations, 215 passed,
   0 failed, 0 skipped**. Per-test results: `docs/test-results/test-case-results.md`.
 - JUnit 5 features used: `@Test`, `@ParameterizedTest` with `@CsvSource`, `@ValueSource`,
   `@EnumSource`, `@NullAndEmptySource`; `@Nested`; `@DisplayName`; `@Tag`; `@BeforeEach`;
   `assertAll`, `assertThrows`, `assertEquals`; implicit argument conversion of `LocalTime`,
   `LocalDate`, `LocalDateTime`, `Duration` and enums from CSV strings.
-- **Example of a successful run** – `docs/test-results/run-14-clean-display-names.txt`
-  (`Tests run: 212, Failures: 0, Errors: 0, Skipped: 0 – BUILD SUCCESS`).
+- **Example of a successful run** – `docs/test-results/run-15-appointment-invariants.txt`
+  (`Tests run: 215, Failures: 0, Errors: 0, Skipped: 0 – BUILD SUCCESS`).
 - **Examples of unsuccessful runs** (real, from defect reproduction):
   - `run-2-DEF-01-failing.txt`: `BookingTest.pastScheduledAppointmentsAreNotActive: Unexpected exception thrown: SchedulingException: Mehmet Kaya (12345678901) already has 3 active appointments`
   - `run-5-DEF-02-03-04-failing.txt`: `BookingTest.idsAreLocaleIndependent: expected: <A0001> but was: <A????>`
@@ -92,23 +92,34 @@ BVA table, traceability matrix). Key figures:
 
 ## 6. Code coverage and defect analysis
 
-### Coverage (JaCoCo 0.8.12, run 14; `Main` excluded as a demo without logic)
+### Coverage (JaCoCo 0.8.12, run 15; `Main` excluded as a demo without logic)
 
 | Scope | Instruction | Branch | Line | Method |
 |---|---|---|---|---|
-| Whole project | 1632/1648 = 99.0 % | 176/178 = 98.9 % | 317/318 = 99.7 % | 87/88 = 98.9 % |
-| Core logic `com.clinic.appointment` | 1077/1093 = 98.5 % | 140/140 = 100 % | 217/218 = 99.5 % | 57/58 = 98.3 % |
+| Whole project | 1648/1648 = 100 % | 176/178 = 98.9 % | 317/317 = 100 % | 88/88 = 100 % |
+| Core logic `com.clinic.appointment` | 1093/1093 = 100 % | 140/140 = 100 % | 219/219 = 100 % | 58/58 = 100 % |
 
-Uncovered: `Appointment.toString()` (used only by the demo) and the `equals(non-Patient/non-Doctor)`
-branch in `Patient` and `Doctor`. No test was added only to cover them: such tests would not check a requirement.
+Uncovered: only the `equals(...)` branch for an object of another class in `Patient` and `Doctor`.
+No test was added just to cover it: such a test would not check a requirement.
+
+**What the coverage report taught us (worth discussing):** before `AppointmentTest` was added, the
+core package had one uncovered branch – the status guard inside `Appointment.changeStatus`. It cannot be
+reached through the public API because `AppointmentService` checks the status first. That is the same
+check whose removal mutant M13 simulated. The guard and the null checks in the `Appointment`
+constructor are invariants of the class, so they are now tested directly (TC-A-01, TC-A-02).
+
+**A measurement mistake that was caught:** the first coverage figures written into these documents were
+read from `target/` right after the mutation script, i.e. from a build of *mutated* code. A clean checkout
+of the committed code gave different numbers, and the documents were corrected. Lesson: coverage is a
+property of one specific build; always measure from `mvnw clean test` on the committed code.
 
 ### Why high coverage did not mean "no defects" – evidence from this project
 
 - When DEF-02 and DEF-03 were present, line coverage was already ~99 %. Each faulty line *was executed*
   by tests, but never with the input that triggers the fault (a non-Latin locale, NFD text).
   Coverage measures what was **run**, not what was **checked**.
-- Mutation round 1: core branch coverage was 100 %, yet mutant M13 survived – the tests executed the
-  status check but no assertion depended on it.
+- Mutation round 1: mutant M13 survived although the status check it removes was executed by many
+  tests – no assertion depended on *which* check rejected the request.
 - Coverage cannot reveal **missing** code (DEF-01 was a missing time condition) or **wrong requirements**.
 - See Inozemtseva & Holmes [6]: coverage is only weakly correlated with fault-detection ability once
   suite size is controlled for; mutation analysis [8] is a stronger effectiveness measure.
@@ -128,7 +139,7 @@ with a full regression run – see `docs/defect-log.md`. How they were found:
 ## 7. Discussion and conclusion – points to evaluate critically
 
 **What worked**
-- Clock injection made every time boundary exactly testable and the suite deterministic (212 test invocations in about 2 seconds of test time).
+- Clock injection made every time boundary exactly testable and the suite deterministic (215 test invocations in about 2 seconds of test time).
 - Asserting the rule ID removed a whole class of "passes for the wrong reason" tests; mutation
   analysis confirmed the BVA tests catch every injected off-by-one fault (M01–M09).
 - Writing the failing test first for each defect produced clear before/after evidence.

@@ -1,0 +1,76 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.clinic:clinic-appointment-system >----------------
+[INFO] Building Clinic Appointment Management System 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ clinic-appointment-system ---
+[INFO] Deleting C:\Users\asih_\OneDrive\Masa�st�\svv\target
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (prepare-agent) @ clinic-appointment-system ---
+[INFO] argLine set to -javaagent:C:\\Users\\asih_\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=C:\\Users\\asih_\\OneDrive\\Masa�st�\\svv\\target\\jacoco.exec,excludes=com/clinic/Main.class
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ clinic-appointment-system ---
+[INFO] skip non existing resourceDirectory C:\Users\asih_\OneDrive\Masa�st�\svv\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ clinic-appointment-system ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 14 source files with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ clinic-appointment-system ---
+[INFO] skip non existing resourceDirectory C:\Users\asih_\OneDrive\Masa�st�\svv\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ clinic-appointment-system ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 15 source files with javac [debug release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ clinic-appointment-system ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running Appointment invariants
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.118 s -- in com.clinic.appointment.AppointmentTest
+[INFO] Running FR-04 Booking
+[INFO] Running FR-04 Booking FR-05 Registration
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.clinic.appointment.BookingTest$Registration
+[INFO] Running FR-04 Booking Decision table rules
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in com.clinic.appointment.BookingTest$DecisionTable
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.261 s -- in com.clinic.appointment.BookingTest
+[INFO] Running FR-06 Cancellation policy
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.135 s -- in com.clinic.appointment.CancellationTest
+[INFO] Running FR-10 Appointment notes
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in com.clinic.appointment.NoteTest
+[INFO] Running FR-07 Rescheduling
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in com.clinic.appointment.RescheduleTest
+[INFO] Running FR-09 Schedule queries
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in com.clinic.appointment.ScheduleQueryTest
+[INFO] Running FR-03 Time slot validation
+[INFO] Tests run: 37, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.100 s -- in com.clinic.appointment.SlotValidationTest
+[INFO] Running FR-08 Status transitions
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.065 s -- in com.clinic.appointment.StatusTransitionTest
+[INFO] Running TimeSlotPolicy unit tests
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in com.clinic.appointment.TimeSlotPolicyTest
+[INFO] Running DEF-04 Rules cannot be bypassed from outside the appointment package
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.clinic.EncapsulationTest
+[INFO] Running FR-02 Doctor validation
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.041 s -- in com.clinic.model.DoctorTest
+[INFO] Running FR-01 Patient validation
+[INFO] Tests run: 35, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.061 s -- in com.clinic.model.PatientTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 215, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jacoco:0.8.12:report (report) @ clinic-appointment-system ---
+[INFO] Loading execution data file C:\Users\asih_\OneDrive\Masa�st�\svv\target\jacoco.exec
+[INFO] Analyzed bundle 'Clinic Appointment Management System' with 13 classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.698 s
+[INFO] Finished at: 2026-10-28T01:12:45+03:00
+[INFO] ------------------------------------------------------------------------

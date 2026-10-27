@@ -5,8 +5,8 @@ Individual assignment for **Software Validation and Verification** – Sıla SER
 ## 1. Project overview
 
 A Java 21 console application that books, cancels and reschedules appointments for a small clinic
-and enforces 26 explicit business rules. The project's focus is systematic verification: 111 JUnit 5
-test cases (212 test invocations) designed with equivalence partitioning, boundary value analysis,
+and enforces 26 explicit business rules. The project's focus is systematic verification: 114 JUnit 5
+test cases (215 test invocations) designed with equivalence partitioning, boundary value analysis,
 decision tables and negative testing, run as a regression suite after every change, measured with
 JaCoCo and checked with a manual mutation analysis.
 
@@ -75,7 +75,8 @@ src/main/java/com/clinic/
   rules/                              ClinicRules (constants), BusinessRule (BR catalogue)
 src/test/java/com/clinic/
   appointment/                        BookingTest, CancellationTest, RescheduleTest, StatusTransitionTest,
-                                      SlotValidationTest, TimeSlotPolicyTest, ScheduleQueryTest, NoteTest
+                                      SlotValidationTest, TimeSlotPolicyTest, ScheduleQueryTest, NoteTest,
+                                      AppointmentTest
   model/                              PatientTest, DoctorTest
   EncapsulationTest.java              DEF-04 regression test (deliberately in another package)
   support/                            MutableClock, ServiceTestBase, RuleAssertions
@@ -141,7 +142,7 @@ python scripts\test_case_report.py          # → docs/test-results/test-case-re
 | Equivalence partitioning | Valid/invalid classes for IDs, names, days, minutes, requesters, statuses | 16 |
 | Boundary value analysis | Below/at/above every time and numeric limit, using exact clock instants | 35 |
 | Decision tables | Booking (5 rules), cancellation (6), rescheduling (7), status transitions (5×4) | 18 |
-| Negative testing | Every rejection asserts the exception type, the exact `BusinessRule` and unchanged state | 53 |
+| Negative testing | Every rejection asserts the exception type, the exact `BusinessRule` and unchanged state | 55 |
 | Regression testing | Full suite after every change; each run saved in `docs/test-results/` | whole suite |
 
 Details and justification: [docs/test-plan.md](docs/test-plan.md).
@@ -150,17 +151,18 @@ Details and justification: [docs/test-plan.md](docs/test-plan.md).
 
 | Measure | Result |
 |---|---|
-| Test cases / JUnit invocations | 111 / 212 |
-| Passed / failed / skipped | 212 / 0 / 0 |
-| Line coverage (whole project / core `appointment` package) | 99.7 % / 99.5 % |
-| Branch coverage (whole project / core) | 98.9 % / 100 % |
-| Method coverage (whole project / core) | 98.9 % / 98.3 % |
+| Test cases / JUnit invocations | 114 / 215 |
+| Passed / failed / skipped | 215 / 0 / 0 |
+| Line coverage (whole project / core `appointment` package) | 100 % (317/317) / 100 % (219/219) |
+| Branch coverage (whole project / core) | 98.9 % (176/178) / 100 % (140/140) |
+| Method coverage (whole project / core) | 100 % (88/88) / 100 % (58/58) |
 | Manual mutation analysis | round 1: 12/13 killed → 2 tests added → round 2: 13/13 killed |
 | Defects found and fixed | 4 (DEF-01 … DEF-04), each with a failing test before the fix |
 
 Per-test results: [docs/test-results/test-case-results.md](docs/test-results/test-case-results.md).
 Defects: [docs/defect-log.md](docs/defect-log.md).
-`Main` is excluded from coverage because it is a demo without business logic.
+`Main` is excluded from coverage because it is a demo without business logic. The two uncovered
+branches are `equals(...)` called with an object of another class in `Patient` and `Doctor`.
 
 ## 14. Known limitations
 

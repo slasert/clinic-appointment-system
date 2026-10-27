@@ -145,7 +145,7 @@ operation is allowed for a SCHEDULED appointment, so the status is the only cond
 
 ### 3.4 Negative testing
 
-53 test cases carry the `Negative` tag. Every one asserts (a) the exception type, (b) the exact
+55 test cases carry the `Negative` tag. Every one asserts (a) the exception type, (b) the exact
 `BusinessRule`, and where state could change (c) that nothing changed: no appointment stored,
 status still SCHEDULED, no note added, no appointment ID consumed (TC-B-13, TC-RS-14).
 Covered: unknown/null IDs, null inputs, malformed times, overlaps, limit violations, invalid
@@ -171,6 +171,7 @@ The full suite was rerun after every change and every run was saved (`docs/test-
 | 12 | Tests strengthened | 209/209 pass |
 | 13 | Tests added after mutation round 1 | 212/212 pass |
 | 14 | Surefire reports with display names (`clean test`) | 212/212 pass |
+| 15 | `AppointmentTest` added for invariants unreachable through the API (`clean test`) | 215/215 pass |
 
 The initial suite run (before DEF-01) was not saved; this is a gap in the evidence.
 
@@ -181,16 +182,16 @@ The initial suite run (before DEF-01) was not saved; this is a gap in the eviden
 | Equivalence partitioning | PatientTest, DoctorTest, SlotValidationTest, BookingTest, ScheduleQueryTest, StatusTransitionTest | 16 |
 | Boundary value analysis | all time/limit tests (see 3.2) | 35 |
 | Decision table | BookingTest, CancellationTest, RescheduleTest, StatusTransitionTest | 18 |
-| Negative testing | every class | 53 |
-| Regression | the whole suite, every run | 111 test cases / 212 invocations |
-| Other functional tests (untagged) | queries, ordering, ID generation, TimeSlotPolicy, encapsulation | 26 |
+| Negative testing | every class | 55 |
+| Regression | the whole suite, every run | 114 test cases / 215 invocations |
+| Other functional tests (untagged) | queries, ordering, ID generation, TimeSlotPolicy, encapsulation | 27 |
 
 A test case can carry several tags, so the counts overlap. Counts are produced by
 `scripts/test_case_report.py`.
 
 ## 5. Requirements traceability matrix
 
-Actual result: all listed test cases passed in run 14 (`docs/test-results/test-case-results.md`).
+Actual result: all listed test cases passed in run 15 (`docs/test-results/test-case-results.md`).
 
 | Req. | Business rules | Implementation | Test cases | Techniques | Expected result | Actual | Status |
 |---|---|---|---|---|---|---|---|
@@ -201,7 +202,7 @@ Actual result: all listed test cases passed in run 14 (`docs/test-results/test-c
 | FR-05 Registration | BR-06, BR-08 | `registerPatient`, `registerDoctor` | TC-R-01 … TC-R-04 | Negative | Duplicates/null rejected, first record kept | as expected | Pass |
 | FR-06 Cancellation | BR-07, BR-08, BR-19, BR-20, BR-21 | `cancel`, `checkChangePolicy`, `Appointment.cancel` | TC-C-01 … TC-C-09 | DT, BVA, Negative | Decision table outcomes, late flag | as expected | Pass |
 | FR-07 Rescheduling | BR-08, BR-12, BR-15 … BR-21, BR-24 | `reschedule` | TC-RS-01 … TC-RS-14 | DT, BVA, Negative | Atomic move or no change | as expected | Pass |
-| FR-08 Status lifecycle | BR-21, BR-22, BR-23 | `complete`, `markNoShow`, `Appointment.changeStatus`; package-private mutators | TC-ST-01 … 04, 07, 09, 10; TC-E-01, TC-E-02 | DT, BVA, Negative | Only SCHEDULED changes; time limits | as expected | Pass |
+| FR-08 Status lifecycle | BR-21, BR-22, BR-23 | `complete`, `markNoShow`, `Appointment.changeStatus`; package-private mutators | TC-ST-01 … 04, 07, 09, 10; TC-E-01, TC-E-02; TC-A-01 … TC-A-03 | DT, BVA, Negative | Only SCHEDULED changes; time limits | as expected | Pass |
 | FR-09 Queries | BR-07, BR-08, BR-13, BR-14, BR-17 | `getAvailableSlots`, `getDoctorSchedule`, `getPatientAppointments`, `findAppointment` | TC-Q-01 … TC-Q-11 | EP, BVA, Negative | Correct, sorted, read-only results | as expected | Pass |
 | FR-10 Notes | BR-07, BR-25, BR-26 | `addNote`, `Appointment.getNotes` | TC-N-01 … TC-N-08 | EP, BVA, Negative | Valid notes stored trimmed; limits enforced | as expected | Pass |
 

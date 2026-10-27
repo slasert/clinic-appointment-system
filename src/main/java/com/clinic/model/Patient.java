@@ -63,8 +63,9 @@ public final class Patient {
         return Objects.hash(id);
     }
 
+    /** The national ID is masked so it does not leak into console output or error messages. */
     @Override
     public String toString() {
-        return name + " (" + id + ")";
+        return name + " (" + id.substring(0, 3) + "******" + id.substring(9) + ")";
     }
 }

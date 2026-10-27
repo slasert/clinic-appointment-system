@@ -131,6 +131,14 @@ class PatientTest {
     }
 
     @Test
+    @DisplayName("TC-P-13 the national ID is masked in text output")
+    void idIsMaskedInToString() {
+        Patient patient = new Patient(VALID_ID, VALID_NAME, 45);
+
+        assertEquals("Mehmet Kaya (123******01)", patient.toString());
+    }
+
+    @Test
     @DisplayName("TC-P-11 patients with the same ID are equal")
     void equalityIsBasedOnId() {
         Patient a = new Patient(VALID_ID, "Mehmet Kaya", 45);

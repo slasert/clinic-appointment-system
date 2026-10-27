@@ -180,6 +180,21 @@ class BookingTest extends ServiceTestBase {
         assertEquals(1, service.getDoctorSchedule(DOCTOR_1, TUESDAY).size());
     }
 
+    @Test
+    @Tag("BVA")
+    @DisplayName("TC-B-16 [DEF-01] past appointments that were never closed do not count as active")
+    void pastScheduledAppointmentsAreNotActive() {
+        clock.setTo(MONDAY.atTime(7, 0));
+        service.book(PATIENT_1, DOCTOR_1, MONDAY.atTime(9, 0));
+        service.book(PATIENT_1, DOCTOR_1, MONDAY.atTime(9, 30));
+        service.book(PATIENT_1, DOCTOR_1, MONDAY.atTime(10, 0));
+
+        // Next day: the three visits are over but staff never marked them COMPLETED.
+        clock.setTo(TUESDAY.atTime(8, 0));
+
+        assertDoesNotThrow(() -> service.book(PATIENT_1, DOCTOR_1, tuesdayAt(14, 0)));
+    }
+
     @ParameterizedTest(name = "TC-B-14 unknown patient ID \"{0}\" is rejected")
     @Tag("Negative")
     @NullAndEmptySource

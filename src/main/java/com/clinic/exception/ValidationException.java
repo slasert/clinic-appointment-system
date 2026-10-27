@@ -1,11 +1,13 @@
 package com.clinic.exception;
 
-/**
- * Thrown when an input value is malformed (null, wrong format, out of range).
- */
-public class ValidationException extends RuntimeException {
+import com.clinic.rules.BusinessRule;
 
-    public ValidationException(String message) {
-        super(message);
+/**
+ * Thrown when an input value is malformed (null, wrong format, out of range, unknown ID).
+ */
+public class ValidationException extends ClinicException {
+
+    public ValidationException(BusinessRule rule, String message) {
+        super(rule, message);
     }
 }

@@ -1,0 +1,100 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.clinic:clinic-appointment-system >----------------
+[INFO] Building Clinic Appointment Management System 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (prepare-agent) @ clinic-appointment-system ---
+[INFO] argLine set to -javaagent:C:\\Users\\asih_\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=C:\\Users\\asih_\\OneDrive\\Masa�st�\\svv\\target\\jacoco.exec,excludes=com/clinic/Main.class
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ clinic-appointment-system ---
+[INFO] skip non existing resourceDirectory C:\Users\asih_\OneDrive\Masa�st�\svv\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ clinic-appointment-system ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ clinic-appointment-system ---
+[INFO] skip non existing resourceDirectory C:\Users\asih_\OneDrive\Masa�st�\svv\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ clinic-appointment-system ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ clinic-appointment-system ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.clinic.EncapsulationTest
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.147 s <<< FAILURE! -- in com.clinic.EncapsulationTest
+[ERROR] com.clinic.EncapsulationTest.noteRuleCannotBeBypassed -- Time elapsed: 0.081 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Expected com.clinic.exception.ValidationException to be thrown, but nothing was thrown.
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:73)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3128)
+	at com.clinic.EncapsulationTest.noteRuleCannotBeBypassed(EncapsulationTest.java:24)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.clinic.EncapsulationTest.completionRuleCannotBeBypassed -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Expected com.clinic.exception.SchedulingException to be thrown, but nothing was thrown.
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:73)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3128)
+	at com.clinic.EncapsulationTest.completionRuleCannotBeBypassed(EncapsulationTest.java:32)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.clinic.model.DoctorTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.176 s -- in com.clinic.model.DoctorTest
+[INFO] Running com.clinic.model.PatientTest
+[INFO] Tests run: 34, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.115 s -- in com.clinic.model.PatientTest
+[INFO] Running com.clinic.service.BookingTest
+[INFO] Running com.clinic.service.BookingTest$DecisionTable
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.clinic.service.BookingTest$DecisionTable
+[INFO] Running com.clinic.service.BookingTest$Registration
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.clinic.service.BookingTest$Registration
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.106 s -- in com.clinic.service.BookingTest
+[INFO] Running com.clinic.service.CancellationTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.138 s -- in com.clinic.service.CancellationTest
+[INFO] Running com.clinic.service.NoteTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.036 s -- in com.clinic.service.NoteTest
+[INFO] Running com.clinic.service.RescheduleTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.clinic.service.RescheduleTest
+[INFO] Running com.clinic.service.ScheduleQueryTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.clinic.service.ScheduleQueryTest
+[INFO] Running com.clinic.service.SlotValidationTest
+[INFO] Tests run: 37, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.230 s -- in com.clinic.service.SlotValidationTest
+[INFO] Running com.clinic.service.StatusTransitionTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in com.clinic.service.StatusTransitionTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   EncapsulationTest.completionRuleCannotBeBypassed:32 Expected com.clinic.exception.SchedulingException to be thrown, but nothing was thrown.
+[ERROR]   EncapsulationTest.noteRuleCannotBeBypassed:24 Expected com.clinic.exception.ValidationException to be thrown, but nothing was thrown.
+[INFO] 
+[ERROR] Tests run: 172, Failures: 2, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.979 s
+[INFO] Finished at: 2026-10-28T00:51:33+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.2:test (default-test) on project clinic-appointment-system: There are test failures.
+[ERROR] 
+[ERROR] See C:\Users\asih_\OneDrive\Masa�st�\svv\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

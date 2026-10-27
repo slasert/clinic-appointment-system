@@ -7,6 +7,8 @@ import com.clinic.model.AppointmentStatus;
 import com.clinic.model.Doctor;
 import com.clinic.model.Patient;
 import com.clinic.model.Requester;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
 
 import java.time.Clock;
 import java.time.DayOfWeek;
@@ -44,20 +46,20 @@ public class AppointmentService {
 
     public void registerPatient(Patient patient) {
         if (patient == null) {
-            throw new ValidationException("Patient cannot be null");
+            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Patient cannot be null");
         }
         if (patients.containsKey(patient.getId())) {
-            throw new ValidationException("Patient " + patient.getId() + " is already registered");
+            throw new ValidationException(BusinessRule.UNIQUE_ID, "Patient " + patient.getId() + " is already registered");
         }
         patients.put(patient.getId(), patient);
     }
 
     public void registerDoctor(Doctor doctor) {
         if (doctor == null) {
-            throw new ValidationException("Doctor cannot be null");
+            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Doctor cannot be null");
         }
         if (doctors.containsKey(doctor.getId())) {
-            throw new ValidationException("Doctor " + doctor.getId() + " is already registered");
+            throw new ValidationException(BusinessRule.UNIQUE_ID, "Doctor " + doctor.getId() + " is already registered");
         }
         doctors.put(doctor.getId(), doctor);
     }
@@ -104,7 +106,7 @@ public class AppointmentService {
         checkChangePolicy(original, requester);
         validateSlot(newStart);
         if (newStart.equals(original.getStart())) {
-            throw new SchedulingException("New time is the same as the current appointment time");
+            throw new SchedulingException(BusinessRule.SAME_TIME_RESCHEDULE, "New time is the same as the current appointment time");
         }
         checkAvailability(original.getPatient(), original.getDoctor(), newStart, original);
 
@@ -119,7 +121,7 @@ public class AppointmentService {
         Appointment appointment = findAppointment(appointmentId);
         requireScheduled(appointment);
         if (now().isBefore(appointment.getStart())) {
-            throw new SchedulingException("Appointment cannot be completed before it starts");
+            throw new SchedulingException(BusinessRule.COMPLETION_TIME, "Appointment cannot be completed before it starts");
         }
         appointment.complete();
     }
@@ -129,7 +131,7 @@ public class AppointmentService {
         Appointment appointment = findAppointment(appointmentId);
         requireScheduled(appointment);
         if (now().isBefore(appointment.getEnd())) {
-            throw new SchedulingException("Appointment cannot be marked as no-show before its slot ends");
+            throw new SchedulingException(BusinessRule.NO_SHOW_TIME, "Appointment cannot be marked as no-show before its slot ends");
         }
         appointment.markNoShow();
     }
@@ -141,14 +143,14 @@ public class AppointmentService {
     public void addNote(String appointmentId, String note) {
         Appointment appointment = findAppointment(appointmentId);
         if (note == null || note.isBlank()) {
-            throw new ValidationException("Note cannot be empty");
+            throw new ValidationException(BusinessRule.NOTE_LENGTH, "Note cannot be empty");
         }
         String trimmed = note.trim();
         if (trimmed.length() > ClinicRules.MAX_NOTE_LENGTH) {
-            throw new ValidationException("Note cannot be longer than " + ClinicRules.MAX_NOTE_LENGTH + " characters");
+            throw new ValidationException(BusinessRule.NOTE_LENGTH, "Note cannot be longer than " + ClinicRules.MAX_NOTE_LENGTH + " characters");
         }
         if (appointment.getNotes().size() >= ClinicRules.MAX_NOTES_PER_APPOINTMENT) {
-            throw new SchedulingException("An appointment can have at most "
+            throw new SchedulingException(BusinessRule.NOTE_LIMIT, "An appointment can have at most "
                     + ClinicRules.MAX_NOTES_PER_APPOINTMENT + " notes");
         }
         appointment.addNote(trimmed);
@@ -159,7 +161,7 @@ public class AppointmentService {
     public Appointment findAppointment(String appointmentId) {
         Appointment appointment = appointmentId == null ? null : appointments.get(appointmentId);
         if (appointment == null) {
-            throw new ValidationException("Unknown appointment: " + appointmentId);
+            throw new ValidationException(BusinessRule.KNOWN_REFERENCE, "Unknown appointment: " + appointmentId);
         }
         return appointment;
     }
@@ -168,7 +170,7 @@ public class AppointmentService {
     public List<Appointment> getDoctorSchedule(String doctorId, LocalDate date) {
         Doctor doctor = findDoctor(doctorId);
         if (date == null) {
-            throw new ValidationException("Date cannot be null");
+            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Date cannot be null");
         }
         return appointments.values().stream()
                 .filter(a -> a.getDoctor().equals(doctor))
@@ -191,7 +193,7 @@ public class AppointmentService {
     public List<LocalDateTime> getAvailableSlots(String doctorId, LocalDate date) {
         Doctor doctor = findDoctor(doctorId);
         if (date == null) {
-            throw new ValidationException("Date cannot be null");
+            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Date cannot be null");
         }
         List<LocalDateTime> free = new ArrayList<>();
         if (countDoctorAppointments(doctor, date, null) >= doctor.getDailyLimit()) {
@@ -213,31 +215,31 @@ public class AppointmentService {
     /** Throws if the start time breaks any time-related rule. */
     void validateSlot(LocalDateTime start) {
         if (start == null) {
-            throw new ValidationException("Start time cannot be null");
+            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Start time cannot be null");
         }
         if (start.getSecond() != 0 || start.getNano() != 0
                 || start.getMinute() % ClinicRules.SLOT_MINUTES != 0) {
-            throw new ValidationException("Appointments must start on the hour or half hour");
+            throw new ValidationException(BusinessRule.SLOT_ALIGNMENT, "Appointments must start on the hour or half hour");
         }
         DayOfWeek day = start.getDayOfWeek();
         if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
-            throw new SchedulingException("The clinic is closed on weekends");
+            throw new SchedulingException(BusinessRule.WORKING_DAY, "The clinic is closed on weekends");
         }
         LocalTime time = start.toLocalTime();
         if (time.isBefore(ClinicRules.OPENING_TIME) || time.isAfter(ClinicRules.LAST_SLOT_START)) {
-            throw new SchedulingException("Appointments must be between "
+            throw new SchedulingException(BusinessRule.WORKING_HOURS, "Appointments must be between "
                     + ClinicRules.OPENING_TIME + " and " + ClinicRules.CLOSING_TIME);
         }
         if (!time.isBefore(ClinicRules.LUNCH_START) && time.isBefore(ClinicRules.LUNCH_END)) {
-            throw new SchedulingException("No appointments during the lunch break");
+            throw new SchedulingException(BusinessRule.LUNCH_BREAK, "No appointments during the lunch break");
         }
         LocalDateTime now = now();
         if (start.isBefore(now.plusHours(ClinicRules.MIN_LEAD_HOURS))) {
-            throw new SchedulingException("Appointments must be booked at least "
+            throw new SchedulingException(BusinessRule.MIN_LEAD_TIME, "Appointments must be booked at least "
                     + ClinicRules.MIN_LEAD_HOURS + " hour in advance");
         }
         if (start.toLocalDate().isAfter(now.toLocalDate().plusDays(ClinicRules.MAX_ADVANCE_DAYS))) {
-            throw new SchedulingException("Appointments cannot be booked more than "
+            throw new SchedulingException(BusinessRule.MAX_ADVANCE, "Appointments cannot be booked more than "
                     + ClinicRules.MAX_ADVANCE_DAYS + " days ahead");
         }
     }
@@ -257,7 +259,7 @@ public class AppointmentService {
      */
     private void checkAvailability(Patient patient, Doctor doctor, LocalDateTime start, Appointment ignored) {
         if (isDoctorBusy(doctor, start, ignored)) {
-            throw new SchedulingException(doctor + " already has an appointment at " + start);
+            throw new SchedulingException(BusinessRule.DOCTOR_CONFLICT, doctor + " already has an appointment at " + start);
         }
         boolean patientBusy = appointments.values().stream()
                 .filter(a -> a != ignored)
@@ -265,10 +267,10 @@ public class AppointmentService {
                         && a.getPatient().equals(patient)
                         && a.getStart().equals(start));
         if (patientBusy) {
-            throw new SchedulingException(patient + " already has an appointment at " + start);
+            throw new SchedulingException(BusinessRule.PATIENT_CONFLICT, patient + " already has an appointment at " + start);
         }
         if (countDoctorAppointments(doctor, start.toLocalDate(), ignored) >= doctor.getDailyLimit()) {
-            throw new SchedulingException(doctor + " has reached the daily limit of "
+            throw new SchedulingException(BusinessRule.DOCTOR_DAILY_LIMIT, doctor + " has reached the daily limit of "
                     + doctor.getDailyLimit() + " appointments");
         }
         // Only upcoming appointments are active; past ones left in SCHEDULED must not block the patient (DEF-01).
@@ -279,7 +281,7 @@ public class AppointmentService {
                 .filter(a -> a.getEnd().isAfter(now))
                 .count();
         if (active >= ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT) {
-            throw new SchedulingException(patient + " already has "
+            throw new SchedulingException(BusinessRule.PATIENT_ACTIVE_LIMIT, patient + " already has "
                     + ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT + " active appointments");
         }
     }
@@ -307,16 +309,16 @@ public class AppointmentService {
      */
     private boolean checkChangePolicy(Appointment appointment, Requester requester) {
         if (requester == null) {
-            throw new ValidationException("Requester cannot be null");
+            throw new ValidationException(BusinessRule.REQUIRED_INPUT, "Requester cannot be null");
         }
         requireScheduled(appointment);
         LocalDateTime now = now();
         if (!now.isBefore(appointment.getStart())) {
-            throw new SchedulingException("Appointment has already started");
+            throw new SchedulingException(BusinessRule.ALREADY_STARTED, "Appointment has already started");
         }
         boolean late = now.plusHours(ClinicRules.FREE_CANCELLATION_HOURS).isAfter(appointment.getStart());
         if (late && requester == Requester.PATIENT) {
-            throw new SchedulingException("Patients cannot change an appointment less than "
+            throw new SchedulingException(BusinessRule.LATE_CHANGE, "Patients cannot change an appointment less than "
                     + ClinicRules.FREE_CANCELLATION_HOURS + " hours before it starts; please contact the clinic");
         }
         return late;
@@ -324,7 +326,7 @@ public class AppointmentService {
 
     private void requireScheduled(Appointment appointment) {
         if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
-            throw new SchedulingException("Appointment " + appointment.getId()
+            throw new SchedulingException(BusinessRule.STATUS_FINAL, "Appointment " + appointment.getId()
                     + " is " + appointment.getStatus() + " and cannot be changed");
         }
     }
@@ -332,7 +334,7 @@ public class AppointmentService {
     private Patient findPatient(String patientId) {
         Patient patient = patientId == null ? null : patients.get(patientId);
         if (patient == null) {
-            throw new ValidationException("Unknown patient: " + patientId);
+            throw new ValidationException(BusinessRule.KNOWN_REFERENCE, "Unknown patient: " + patientId);
         }
         return patient;
     }
@@ -340,7 +342,7 @@ public class AppointmentService {
     private Doctor findDoctor(String doctorId) {
         Doctor doctor = doctorId == null ? null : doctors.get(doctorId);
         if (doctor == null) {
-            throw new ValidationException("Unknown doctor: " + doctorId);
+            throw new ValidationException(BusinessRule.KNOWN_REFERENCE, "Unknown doctor: " + doctorId);
         }
         return doctor;
     }

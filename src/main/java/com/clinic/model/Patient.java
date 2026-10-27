@@ -1,6 +1,8 @@
 package com.clinic.model;
 
 import com.clinic.exception.ValidationException;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -10,10 +12,7 @@ import java.util.regex.Pattern;
  */
 public final class Patient {
 
-    public static final int MIN_AGE = 0;
-    public static final int MAX_AGE = 120;
-
-    /** 11 digits, first digit cannot be 0 (Turkish national ID format). */
+    /** 11 digits, first digit cannot be 0 (Turkish national ID format, BR-01). */
     private static final Pattern ID_PATTERN = Pattern.compile("[1-9][0-9]{10}");
 
     private final String id;
@@ -28,14 +27,16 @@ public final class Patient {
 
     private static String validateId(String id) {
         if (id == null || !ID_PATTERN.matcher(id).matches()) {
-            throw new ValidationException("Patient ID must be 11 digits and cannot start with 0");
+            throw new ValidationException(BusinessRule.PATIENT_ID_FORMAT,
+                    "Patient ID must be 11 digits and cannot start with 0");
         }
         return id;
     }
 
     private static int validateAge(int age) {
-        if (age < MIN_AGE || age > MAX_AGE) {
-            throw new ValidationException("Patient age must be between " + MIN_AGE + " and " + MAX_AGE);
+        if (age < ClinicRules.MIN_AGE || age > ClinicRules.MAX_AGE) {
+            throw new ValidationException(BusinessRule.PATIENT_AGE_RANGE,
+                    "Patient age must be between " + ClinicRules.MIN_AGE + " and " + ClinicRules.MAX_AGE);
         }
         return age;
     }

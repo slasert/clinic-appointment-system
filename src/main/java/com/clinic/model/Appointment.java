@@ -1,7 +1,8 @@
 package com.clinic.model;
 
 import com.clinic.exception.SchedulingException;
-import com.clinic.service.ClinicRules;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -53,7 +54,7 @@ public final class Appointment {
 
     private void changeStatus(AppointmentStatus newStatus) {
         if (status != AppointmentStatus.SCHEDULED) {
-            throw new SchedulingException("Cannot change appointment " + id + " from " + status + " to " + newStatus);
+            throw new SchedulingException(BusinessRule.STATUS_FINAL, "Cannot change appointment " + id + " from " + status + " to " + newStatus);
         }
         status = newStatus;
     }

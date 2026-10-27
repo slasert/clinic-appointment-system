@@ -1,7 +1,8 @@
 package com.clinic.model;
 
 import com.clinic.exception.ValidationException;
-import com.clinic.service.ClinicRules;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
 
 import java.util.Objects;
 
@@ -10,9 +11,6 @@ import java.util.Objects;
  */
 public final class Doctor {
 
-    public static final int MIN_DAILY_LIMIT = 1;
-    public static final int MAX_DAILY_LIMIT = ClinicRules.SLOTS_PER_DAY;
-
     private final String id;
     private final String name;
     private final String specialty;
@@ -20,14 +18,14 @@ public final class Doctor {
 
     public Doctor(String id, String name, String specialty, int dailyLimit) {
         if (id == null || id.isBlank()) {
-            throw new ValidationException("Doctor ID cannot be empty");
+            throw new ValidationException(BusinessRule.DOCTOR_DETAILS_REQUIRED, "Doctor ID cannot be empty");
         }
         if (specialty == null || specialty.isBlank()) {
-            throw new ValidationException("Doctor specialty cannot be empty");
+            throw new ValidationException(BusinessRule.DOCTOR_DETAILS_REQUIRED, "Doctor specialty cannot be empty");
         }
-        if (dailyLimit < MIN_DAILY_LIMIT || dailyLimit > MAX_DAILY_LIMIT) {
-            throw new ValidationException("Daily appointment limit must be between "
-                    + MIN_DAILY_LIMIT + " and " + MAX_DAILY_LIMIT);
+        if (dailyLimit < ClinicRules.MIN_DAILY_LIMIT || dailyLimit > ClinicRules.MAX_DAILY_LIMIT) {
+            throw new ValidationException(BusinessRule.DOCTOR_LIMIT_RANGE, "Daily appointment limit must be between "
+                    + ClinicRules.MIN_DAILY_LIMIT + " and " + ClinicRules.MAX_DAILY_LIMIT);
         }
         this.id = id.trim();
         this.name = NameValidator.validate(name, "Doctor name");

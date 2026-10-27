@@ -4,6 +4,7 @@ import com.clinic.exception.ValidationException;
 import com.clinic.model.Appointment;
 import com.clinic.model.AppointmentStatus;
 import com.clinic.model.Requester;
+import com.clinic.rules.ClinicRules;
 import com.clinic.support.ServiceTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

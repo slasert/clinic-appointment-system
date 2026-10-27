@@ -2,6 +2,7 @@ package com.clinic.model;
 
 import com.clinic.exception.ValidationException;
 
+import java.text.Normalizer;
 import java.util.regex.Pattern;
 
 /**
@@ -22,7 +23,8 @@ final class NameValidator {
         if (name == null || name.isBlank()) {
             throw new ValidationException(field + " cannot be empty");
         }
-        String trimmed = name.trim();
+        // NFC turns "S" + combining cedilla into the single letter "Ş" (DEF-03).
+        String trimmed = Normalizer.normalize(name.trim(), Normalizer.Form.NFC);
         if (trimmed.length() < MIN_LENGTH || trimmed.length() > MAX_LENGTH) {
             throw new ValidationException(field + " must be between " + MIN_LENGTH + " and " + MAX_LENGTH + " characters");
         }

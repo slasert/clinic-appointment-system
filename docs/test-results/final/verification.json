@@ -1,0 +1,70 @@
+{
+  "generated_utc": "2026-11-02T20:29:25.170609+00:00",
+  "tests": {
+    "tests": 216,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "coverage_excludes": [
+    "com/clinic/Main*"
+  ],
+  "coverage": {
+    "INSTRUCTION": {
+      "covered": 1648,
+      "missed": 0
+    },
+    "BRANCH": {
+      "covered": 176,
+      "missed": 2
+    },
+    "LINE": {
+      "covered": 317,
+      "missed": 0
+    },
+    "COMPLEXITY": {
+      "covered": 175,
+      "missed": 2
+    },
+    "METHOD": {
+      "covered": 88,
+      "missed": 0
+    },
+    "CLASS": {
+      "covered": 13,
+      "missed": 0
+    }
+  },
+  "source_sha256": {
+    "src/main/java/com/clinic/appointment/Appointment.java": "1a00e7f61794fabf2b459e5cccb10db02d365db92391ed0d465eb31e1392f0dc",
+    "src/main/java/com/clinic/appointment/AppointmentService.java": "04f105b0b629f5e7865e5ad50f51742ea2012936faea856f3ca1a8ff48956dcf",
+    "src/main/java/com/clinic/appointment/AppointmentStatus.java": "67729124e2dbaa75665953159d0f9c6060475f04d9c3770d9892c04fbe9dc25f",
+    "src/main/java/com/clinic/appointment/TimeSlotPolicy.java": "96011b129fe09588675d2267f4428253afde2c1e4b6db2886f4da026570d8d39",
+    "src/main/java/com/clinic/exception/ClinicException.java": "cbab18d03ac7f6fa33d940ccfcf698e16931e2a3358530e51e37d0e0c2390e44",
+    "src/main/java/com/clinic/exception/SchedulingException.java": "555a77073d6ece476a5db48da936ff973735993a627d6e9e553e956e0e98748a",
+    "src/main/java/com/clinic/exception/ValidationException.java": "7092d83b4bc76a6a842efffe06d9a1274a60c62ea123baaade5f767451fb2ffa",
+    "src/main/java/com/clinic/Main.java": "015c34b088eb0a52e640f98ae9eac93d666bdec65bcab17244e87ce4f317022c",
+    "src/main/java/com/clinic/model/Doctor.java": "a6bfa5b777c3fd3d82d41f3e952aec06f2555afb28e52ad0cfec07834934b074",
+    "src/main/java/com/clinic/model/NameValidator.java": "f3854241cc3d1630404e9918737fc1caa87083e354ca58554253adc37a051365",
+    "src/main/java/com/clinic/model/Patient.java": "5a12ab20dcee3bb5497bdbcff770705ac71854e26cba780971a0f71687757cf3",
+    "src/main/java/com/clinic/model/Requester.java": "e86b0fe873dba7985aa6d6f92bb98e0cc18e59d35cdd4f36a248714da0e69e37",
+    "src/main/java/com/clinic/rules/BusinessRule.java": "ed70cc5aaae84c216829c389fd4ba13e313bb39b24a0b9f78ccf0eadac9ae557",
+    "src/main/java/com/clinic/rules/ClinicRules.java": "574369424aa8a308fa272cd4ae4ed219498b9fb2915baee12b691d55c48e5813",
+    "src/test/java/com/clinic/appointment/AppointmentTest.java": "fc960a29efc3143cfde21a98883f6dd725b977c1cf589312335252896043f847",
+    "src/test/java/com/clinic/appointment/BookingTest.java": "8621dd9cf8ebdb5674341e60315e17b53d1c93387e1773748a01b49b68446dd9",
+    "src/test/java/com/clinic/appointment/CancellationTest.java": "0db16cc14aa7eda7db5c060cbf01664f8582108ba28c0ac8711471c944d66732",
+    "src/test/java/com/clinic/appointment/NoteTest.java": "81bf0ec6f7318a2bd5d59bb31c8f710d78271d263c64988d2b249f6f2be6389c",
+    "src/test/java/com/clinic/appointment/RescheduleTest.java": "8a120c92e7fb2d6592a366c40eaa4616dcb171730538a4b870ca8dd07736aa5b",
+    "src/test/java/com/clinic/appointment/ScheduleQueryTest.java": "728ac399396b3787b7aa1f31387bd20e49358db5d4815d1348a2b36962530335",
+    "src/test/java/com/clinic/appointment/SlotValidationTest.java": "839545f000acdfa56fdce8a7053bbc02aeed37489f1586e43bf193b8c615b7e7",
+    "src/test/java/com/clinic/appointment/StatusTransitionTest.java": "2501b7b6fbad7a313fd060f73db1dacf79150d75784320081a94b7b74950d92f",
+    "src/test/java/com/clinic/appointment/TimeSlotPolicyTest.java": "1794133fa549b6148a23b5e16d6876e92204a1115447e7cd372b5d592ceaf601",
+    "src/test/java/com/clinic/EncapsulationTest.java": "c21b3307b3bfcafe1f6d347a37df52dbbf70d385a8d9af82d4e8c65029d4d0b1",
+    "src/test/java/com/clinic/model/DoctorTest.java": "e74e1db7459913d10c03a3d8e339d5cfbb368488bcbcfe8634567537be26527a",
+    "src/test/java/com/clinic/model/PatientTest.java": "04c430869a4f32ea2f14eb5af49e75d12d22a71775b4b42b204e489155738bc4",
+    "src/test/java/com/clinic/SmokeTest.java": "1c02d2c9477eae8cb0700e58df2121194fd2589c8a66299b9992ac4a4489f375",
+    "src/test/java/com/clinic/support/MutableClock.java": "72333ae85a0a16b01ba72d1f12d10d1d82677d4a56869005e830b678750bcf42",
+    "src/test/java/com/clinic/support/RuleAssertions.java": "31edf77c9da84e13f0cccff6f03b5b5b986e4a86e25c57aba574e3bbe7fc3859",
+    "src/test/java/com/clinic/support/ServiceTestBase.java": "e62da7d7124e0fd43e0c781597a9f075b6b190d9eaa15792e7a99f74937a0afd"
+  }
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NameValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.model</a> &gt; <span class="el_source">NameValidator.java</span></div><h1>NameValidator.java</h1><pre class="source lang-java linenums">package com.clinic.model;
+
+import com.clinic.exception.ValidationException;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
+
+import java.text.Normalizer;
+import java.util.regex.Pattern;
+
+/**
+ * Shared name rule (BR-02) for patients and doctors.
+ */
+final class NameValidator {
+
+    /** Letters (including Turkish characters), spaces, hyphens and apostrophes; must start with a letter. */
+<span class="fc" id="L16">    private static final Pattern NAME_PATTERN = Pattern.compile(&quot;[\\p{L}][\\p{L} '\\-]*&quot;);</span>
+
+    private NameValidator() {
+    }
+
+    static String validate(String name, String field) {
+<span class="fc bfc" id="L22" title="All 4 branches covered.">        if (name == null || name.isBlank()) {</span>
+<span class="fc" id="L23">            throw new ValidationException(BusinessRule.NAME_FORMAT, field + &quot; cannot be empty&quot;);</span>
+        }
+        // NFC turns &quot;S&quot; + combining cedilla into the single letter &quot;Ş&quot; (DEF-03).
+<span class="fc" id="L26">        String normalized = Normalizer.normalize(name.trim(), Normalizer.Form.NFC);</span>
+<span class="fc bfc" id="L27" title="All 4 branches covered.">        if (normalized.length() &lt; ClinicRules.NAME_MIN_LENGTH || normalized.length() &gt; ClinicRules.NAME_MAX_LENGTH) {</span>
+<span class="fc" id="L28">            throw new ValidationException(BusinessRule.NAME_FORMAT, field + &quot; must be between &quot;</span>
+                    + ClinicRules.NAME_MIN_LENGTH + &quot; and &quot; + ClinicRules.NAME_MAX_LENGTH + &quot; characters&quot;);
+        }
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (!NAME_PATTERN.matcher(normalized).matches()) {</span>
+<span class="fc" id="L32">            throw new ValidationException(BusinessRule.NAME_FORMAT,</span>
+                    field + &quot; may only contain letters, spaces, hyphens and apostrophes&quot;);
+        }
+<span class="fc" id="L35">        return normalized;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

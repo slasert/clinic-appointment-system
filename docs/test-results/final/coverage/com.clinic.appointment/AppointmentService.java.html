@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppointmentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.appointment</a> &gt; <span class="el_source">AppointmentService.java</span></div><h1>AppointmentService.java</h1><pre class="source lang-java linenums">package com.clinic.appointment;
+
+import com.clinic.exception.SchedulingException;
+import com.clinic.exception.ValidationException;
+import com.clinic.model.Doctor;
+import com.clinic.model.Patient;
+import com.clinic.model.Requester;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
+
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Central service that books, cancels and reschedules appointments while
+ * enforcing the clinic rules defined in {@link ClinicRules}.
+ *
+ * &lt;p&gt;The current time is taken from an injected {@link Clock} so that every
+ * time-dependent rule can be tested deterministically.&lt;/p&gt;
+ */
+public class AppointmentService {
+
+    private final Clock clock;
+<span class="fc" id="L32">    private final Map&lt;String, Patient&gt; patients = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L33">    private final Map&lt;String, Doctor&gt; doctors = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L34">    private final Map&lt;String, Appointment&gt; appointments = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L35">    private int nextAppointmentNumber = 1;</span>
+
+<span class="fc" id="L37">    public AppointmentService(Clock clock) {</span>
+<span class="fc" id="L38">        this.clock = Objects.requireNonNull(clock, &quot;clock&quot;);</span>
+<span class="fc" id="L39">    }</span>
+
+    // ---------------------------------------------------------------- registration
+
+    public void registerPatient(Patient patient) {
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (patient == null) {</span>
+<span class="fc" id="L45">            throw new ValidationException(BusinessRule.REQUIRED_INPUT, &quot;Patient cannot be null&quot;);</span>
+        }
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (patients.containsKey(patient.getId())) {</span>
+<span class="fc" id="L48">            throw new ValidationException(BusinessRule.UNIQUE_ID, &quot;Patient &quot; + patient.getId() + &quot; is already registered&quot;);</span>
+        }
+<span class="fc" id="L50">        patients.put(patient.getId(), patient);</span>
+<span class="fc" id="L51">    }</span>
+
+    public void registerDoctor(Doctor doctor) {
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (doctor == null) {</span>
+<span class="fc" id="L55">            throw new ValidationException(BusinessRule.REQUIRED_INPUT, &quot;Doctor cannot be null&quot;);</span>
+        }
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (doctors.containsKey(doctor.getId())) {</span>
+<span class="fc" id="L58">            throw new ValidationException(BusinessRule.UNIQUE_ID, &quot;Doctor &quot; + doctor.getId() + &quot; is already registered&quot;);</span>
+        }
+<span class="fc" id="L60">        doctors.put(doctor.getId(), doctor);</span>
+<span class="fc" id="L61">    }</span>
+
+    // ---------------------------------------------------------------- booking
+
+    /**
+     * Books a 30-minute appointment.
+     *
+     * @throws ValidationException  unknown patient/doctor or malformed start time
+     * @throws SchedulingException  a clinic rule prevents the booking
+     */
+    public Appointment book(String patientId, String doctorId, LocalDateTime start) {
+<span class="fc" id="L72">        Patient patient = findPatient(patientId);</span>
+<span class="fc" id="L73">        Doctor doctor = findDoctor(doctorId);</span>
+<span class="fc" id="L74">        TimeSlotPolicy.validate(start, now());</span>
+<span class="fc" id="L75">        checkAvailability(patient, doctor, start, null);</span>
+
+<span class="fc" id="L77">        Appointment appointment = new Appointment(nextId(), patient, doctor, start);</span>
+<span class="fc" id="L78">        appointments.put(appointment.getId(), appointment);</span>
+<span class="fc" id="L79">        return appointment;</span>
+    }
+
+    /**
+     * Cancels an appointment according to the cancellation policy:
+     * &lt;ul&gt;
+     *   &lt;li&gt;at least 24 hours before the start: anyone may cancel&lt;/li&gt;
+     *   &lt;li&gt;less than 24 hours before: only staff, recorded as a late cancellation&lt;/li&gt;
+     *   &lt;li&gt;after the start time: not allowed&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+    public void cancel(String appointmentId, Requester requester) {
+<span class="fc" id="L91">        Appointment appointment = findAppointment(appointmentId);</span>
+<span class="fc" id="L92">        boolean late = checkChangePolicy(appointment, requester);</span>
+<span class="fc" id="L93">        appointment.cancel(late);</span>
+<span class="fc" id="L94">    }</span>
+
+    /**
+     * Moves an appointment to a new slot as one atomic operation: either the old
+     * appointment becomes RESCHEDULED and a new one is created, or nothing changes.
+     */
+    public Appointment reschedule(String appointmentId, LocalDateTime newStart, Requester requester) {
+<span class="fc" id="L101">        Appointment original = findAppointment(appointmentId);</span>
+<span class="fc" id="L102">        checkChangePolicy(original, requester);</span>
+<span class="fc" id="L103">        TimeSlotPolicy.validate(newStart, now());</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (newStart.equals(original.getStart())) {</span>
+<span class="fc" id="L105">            throw new SchedulingException(BusinessRule.SAME_TIME_RESCHEDULE, &quot;New time is the same as the current appointment time&quot;);</span>
+        }
+<span class="fc" id="L107">        checkAvailability(original.getPatient(), original.getDoctor(), newStart, original);</span>
+
+<span class="fc" id="L109">        Appointment moved = new Appointment(nextId(), original.getPatient(), original.getDoctor(), newStart);</span>
+<span class="fc" id="L110">        original.markRescheduled();</span>
+<span class="fc" id="L111">        appointments.put(moved.getId(), moved);</span>
+<span class="fc" id="L112">        return moved;</span>
+    }
+
+    /** Marks a scheduled appointment as completed. Allowed once the appointment has started. */
+    public void complete(String appointmentId) {
+<span class="fc" id="L117">        Appointment appointment = findAppointment(appointmentId);</span>
+<span class="fc" id="L118">        requireScheduled(appointment);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        if (now().isBefore(appointment.getStart())) {</span>
+<span class="fc" id="L120">            throw new SchedulingException(BusinessRule.COMPLETION_TIME, &quot;Appointment cannot be completed before it starts&quot;);</span>
+        }
+<span class="fc" id="L122">        appointment.complete();</span>
+<span class="fc" id="L123">    }</span>
+
+    /** Marks a scheduled appointment as no-show. Allowed once the appointment slot has ended. */
+    public void markNoShow(String appointmentId) {
+<span class="fc" id="L127">        Appointment appointment = findAppointment(appointmentId);</span>
+<span class="fc" id="L128">        requireScheduled(appointment);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (now().isBefore(appointment.getEnd())) {</span>
+<span class="fc" id="L130">            throw new SchedulingException(BusinessRule.NO_SHOW_TIME, &quot;Appointment cannot be marked as no-show before its slot ends&quot;);</span>
+        }
+<span class="fc" id="L132">        appointment.markNoShow();</span>
+<span class="fc" id="L133">    }</span>
+
+    /**
+     * Adds a staff note to an appointment (any status). Notes are 1..200 characters
+     * after trimming, at most 5 per appointment.
+     */
+    public void addNote(String appointmentId, String note) {
+<span class="fc" id="L140">        Appointment appointment = findAppointment(appointmentId);</span>
+<span class="fc bfc" id="L141" title="All 4 branches covered.">        if (note == null || note.isBlank()) {</span>
+<span class="fc" id="L142">            throw new ValidationException(BusinessRule.NOTE_LENGTH, &quot;Note cannot be empty&quot;);</span>
+        }
+<span class="fc" id="L144">        String trimmed = note.trim();</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        if (trimmed.length() &gt; ClinicRules.MAX_NOTE_LENGTH) {</span>
+<span class="fc" id="L146">            throw new ValidationException(BusinessRule.NOTE_LENGTH, &quot;Note cannot be longer than &quot; + ClinicRules.MAX_NOTE_LENGTH + &quot; characters&quot;);</span>
+        }
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        if (appointment.getNotes().size() &gt;= ClinicRules.MAX_NOTES_PER_APPOINTMENT) {</span>
+<span class="fc" id="L149">            throw new SchedulingException(BusinessRule.NOTE_LIMIT, &quot;An appointment can have at most &quot;</span>
+                    + ClinicRules.MAX_NOTES_PER_APPOINTMENT + &quot; notes&quot;);
+        }
+<span class="fc" id="L152">        appointment.addNote(trimmed);</span>
+<span class="fc" id="L153">    }</span>
+
+    // ---------------------------------------------------------------- queries
+
+    public Appointment findAppointment(String appointmentId) {
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        Appointment appointment = appointmentId == null ? null : appointments.get(appointmentId);</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (appointment == null) {</span>
+<span class="fc" id="L160">            throw new ValidationException(BusinessRule.KNOWN_REFERENCE, &quot;Unknown appointment: &quot; + appointmentId);</span>
+        }
+<span class="fc" id="L162">        return appointment;</span>
+    }
+
+    /** Scheduled appointments of a doctor on the given date, ordered by time. */
+    public List&lt;Appointment&gt; getDoctorSchedule(String doctorId, LocalDate date) {
+<span class="fc" id="L167">        Doctor doctor = findDoctor(doctorId);</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        if (date == null) {</span>
+<span class="fc" id="L169">            throw new ValidationException(BusinessRule.REQUIRED_INPUT, &quot;Date cannot be null&quot;);</span>
+        }
+<span class="fc" id="L171">        return appointments.values().stream()</span>
+<span class="fc" id="L172">                .filter(a -&gt; a.getDoctor().equals(doctor))</span>
+<span class="fc" id="L173">                .filter(a -&gt; a.getDate().equals(date))</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">                .filter(a -&gt; a.getStatus() == AppointmentStatus.SCHEDULED)</span>
+<span class="fc" id="L175">                .sorted(Comparator.comparing(Appointment::getStart))</span>
+<span class="fc" id="L176">                .toList();</span>
+    }
+
+    /** All appointments of a patient (any status), ordered by time. */
+    public List&lt;Appointment&gt; getPatientAppointments(String patientId) {
+<span class="fc" id="L181">        Patient patient = findPatient(patientId);</span>
+<span class="fc" id="L182">        return appointments.values().stream()</span>
+<span class="fc" id="L183">                .filter(a -&gt; a.getPatient().equals(patient))</span>
+<span class="fc" id="L184">                .sorted(Comparator.comparing(Appointment::getStart))</span>
+<span class="fc" id="L185">                .toList();</span>
+    }
+
+    /** Start times on the given date that a doctor could still accept a booking for. */
+    public List&lt;LocalDateTime&gt; getAvailableSlots(String doctorId, LocalDate date) {
+<span class="fc" id="L190">        Doctor doctor = findDoctor(doctorId);</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (date == null) {</span>
+<span class="fc" id="L192">            throw new ValidationException(BusinessRule.REQUIRED_INPUT, &quot;Date cannot be null&quot;);</span>
+        }
+<span class="fc" id="L194">        List&lt;LocalDateTime&gt; free = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">        if (countDoctorAppointments(doctor, date, null) &gt;= doctor.getDailyLimit()) {</span>
+<span class="fc" id="L196">            return free;</span>
+        }
+<span class="fc" id="L198">        LocalDateTime now = now();</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">        for (LocalDateTime start : TimeSlotPolicy.dailySlots(date)) {</span>
+<span class="fc bfc" id="L200" title="All 4 branches covered.">            if (TimeSlotPolicy.findViolation(start, now).isEmpty() &amp;&amp; !isDoctorBusy(doctor, start, null)) {</span>
+<span class="fc" id="L201">                free.add(start);</span>
+            }
+<span class="fc" id="L203">        }</span>
+<span class="fc" id="L204">        return free;</span>
+    }
+
+    // ---------------------------------------------------------------- rules
+
+    /**
+     * Checks conflicts and limits. {@code ignored} is the appointment being
+     * rescheduled, which must not count against itself.
+     */
+    private void checkAvailability(Patient patient, Doctor doctor, LocalDateTime start, Appointment ignored) {
+<span class="fc bfc" id="L214" title="All 2 branches covered.">        if (isDoctorBusy(doctor, start, ignored)) {</span>
+<span class="fc" id="L215">            throw new SchedulingException(BusinessRule.DOCTOR_CONFLICT, doctor + &quot; already has an appointment at &quot; + start);</span>
+        }
+<span class="fc" id="L217">        boolean patientBusy = appointments.values().stream()</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">                .filter(a -&gt; a != ignored)</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">                .anyMatch(a -&gt; a.getStatus() == AppointmentStatus.SCHEDULED</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">                        &amp;&amp; a.getPatient().equals(patient)</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">                        &amp;&amp; a.getStart().equals(start));</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">        if (patientBusy) {</span>
+<span class="fc" id="L223">            throw new SchedulingException(BusinessRule.PATIENT_CONFLICT, patient + &quot; already has an appointment at &quot; + start);</span>
+        }
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        if (countDoctorAppointments(doctor, start.toLocalDate(), ignored) &gt;= doctor.getDailyLimit()) {</span>
+<span class="fc" id="L226">            throw new SchedulingException(BusinessRule.DOCTOR_DAILY_LIMIT, doctor + &quot; has reached the daily limit of &quot;</span>
+<span class="fc" id="L227">                    + doctor.getDailyLimit() + &quot; appointments&quot;);</span>
+        }
+        // Only upcoming appointments are active; past ones left in SCHEDULED must not block the patient (DEF-01).
+<span class="fc" id="L230">        LocalDateTime now = now();</span>
+<span class="fc" id="L231">        long active = appointments.values().stream()</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">                .filter(a -&gt; a != ignored)</span>
+<span class="fc bfc" id="L233" title="All 4 branches covered.">                .filter(a -&gt; a.getStatus() == AppointmentStatus.SCHEDULED &amp;&amp; a.getPatient().equals(patient))</span>
+<span class="fc" id="L234">                .filter(a -&gt; a.getEnd().isAfter(now))</span>
+<span class="fc" id="L235">                .count();</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">        if (active &gt;= ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT) {</span>
+<span class="fc" id="L237">            throw new SchedulingException(BusinessRule.PATIENT_ACTIVE_LIMIT, patient + &quot; already has &quot;</span>
+                    + ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT + &quot; active appointments&quot;);
+        }
+<span class="fc" id="L240">    }</span>
+
+    private boolean isDoctorBusy(Doctor doctor, LocalDateTime start, Appointment ignored) {
+<span class="fc" id="L243">        return appointments.values().stream()</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">                .filter(a -&gt; a != ignored)</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">                .anyMatch(a -&gt; a.getStatus() == AppointmentStatus.SCHEDULED</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">                        &amp;&amp; a.getDoctor().equals(doctor)</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">                        &amp;&amp; a.getStart().equals(start));</span>
+    }
+
+    private long countDoctorAppointments(Doctor doctor, LocalDate date, Appointment ignored) {
+<span class="fc" id="L251">        return appointments.values().stream()</span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">                .filter(a -&gt; a != ignored)</span>
+<span class="fc" id="L253">                .filter(a -&gt; a.getStatus().occupiesSlot())</span>
+<span class="fc bfc" id="L254" title="All 4 branches covered.">                .filter(a -&gt; a.getDoctor().equals(doctor) &amp;&amp; a.getDate().equals(date))</span>
+<span class="fc" id="L255">                .count();</span>
+    }
+
+    /**
+     * Applies the cancellation/reschedule policy decision table.
+     *
+     * @return true if the change is a late change (less than 24 hours before the start)
+     */
+    private boolean checkChangePolicy(Appointment appointment, Requester requester) {
+<span class="fc bfc" id="L264" title="All 2 branches covered.">        if (requester == null) {</span>
+<span class="fc" id="L265">            throw new ValidationException(BusinessRule.REQUIRED_INPUT, &quot;Requester cannot be null&quot;);</span>
+        }
+<span class="fc" id="L267">        requireScheduled(appointment);</span>
+<span class="fc" id="L268">        LocalDateTime now = now();</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">        if (!now.isBefore(appointment.getStart())) {</span>
+<span class="fc" id="L270">            throw new SchedulingException(BusinessRule.ALREADY_STARTED, &quot;Appointment has already started&quot;);</span>
+        }
+<span class="fc" id="L272">        boolean late = now.plusHours(ClinicRules.FREE_CANCELLATION_HOURS).isAfter(appointment.getStart());</span>
+<span class="fc bfc" id="L273" title="All 4 branches covered.">        if (late &amp;&amp; requester == Requester.PATIENT) {</span>
+<span class="fc" id="L274">            throw new SchedulingException(BusinessRule.LATE_CHANGE, &quot;Patients cannot change an appointment less than &quot;</span>
+                    + ClinicRules.FREE_CANCELLATION_HOURS + &quot; hours before it starts; please contact the clinic&quot;);
+        }
+<span class="fc" id="L277">        return late;</span>
+    }
+
+    private void requireScheduled(Appointment appointment) {
+<span class="fc bfc" id="L281" title="All 2 branches covered.">        if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {</span>
+<span class="fc" id="L282">            throw new SchedulingException(BusinessRule.STATUS_FINAL, &quot;Appointment &quot; + appointment.getId()</span>
+<span class="fc" id="L283">                    + &quot; is &quot; + appointment.getStatus() + &quot; and cannot be changed&quot;);</span>
+        }
+<span class="fc" id="L285">    }</span>
+
+    private Patient findPatient(String patientId) {
+<span class="fc bfc" id="L288" title="All 2 branches covered.">        Patient patient = patientId == null ? null : patients.get(patientId);</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">        if (patient == null) {</span>
+<span class="fc" id="L290">            throw new ValidationException(BusinessRule.KNOWN_REFERENCE, &quot;Unknown patient: &quot; + patientId);</span>
+        }
+<span class="fc" id="L292">        return patient;</span>
+    }
+
+    private Doctor findDoctor(String doctorId) {
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        Doctor doctor = doctorId == null ? null : doctors.get(doctorId);</span>
+<span class="fc bfc" id="L297" title="All 2 branches covered.">        if (doctor == null) {</span>
+<span class="fc" id="L298">            throw new ValidationException(BusinessRule.KNOWN_REFERENCE, &quot;Unknown doctor: &quot; + doctorId);</span>
+        }
+<span class="fc" id="L300">        return doctor;</span>
+    }
+
+    private LocalDateTime now() {
+<span class="fc" id="L304">        return LocalDateTime.now(clock);</span>
+    }
+
+    private String nextId() {
+        // Locale.ROOT keeps ASCII digits on every machine (DEF-02).
+<span class="fc" id="L309">        return String.format(Locale.ROOT, &quot;A%04d&quot;, nextAppointmentNumber++);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

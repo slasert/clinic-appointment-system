@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Appointment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.appointment</a> &gt; <span class="el_source">Appointment.java</span></div><h1>Appointment.java</h1><pre class="source lang-java linenums">package com.clinic.appointment;
+
+import com.clinic.exception.SchedulingException;
+import com.clinic.model.Doctor;
+import com.clinic.model.Patient;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * A single 30-minute appointment.
+ *
+ * &lt;p&gt;Other packages can only read an appointment. Creating and changing it is package-private,
+ * so every change has to go through {@link AppointmentService}, which enforces the business
+ * rules (DEF-04).&lt;/p&gt;
+ */
+public final class Appointment {
+
+    private final String id;
+    private final Patient patient;
+    private final Doctor doctor;
+    private final LocalDateTime start;
+<span class="fc" id="L29">    private AppointmentStatus status = AppointmentStatus.SCHEDULED;</span>
+    private boolean lateCancellation;
+<span class="fc" id="L31">    private final List&lt;String&gt; notes = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L33">    Appointment(String id, Patient patient, Doctor doctor, LocalDateTime start) {</span>
+<span class="fc" id="L34">        this.id = Objects.requireNonNull(id, &quot;id&quot;);</span>
+<span class="fc" id="L35">        this.patient = Objects.requireNonNull(patient, &quot;patient&quot;);</span>
+<span class="fc" id="L36">        this.doctor = Objects.requireNonNull(doctor, &quot;doctor&quot;);</span>
+<span class="fc" id="L37">        this.start = Objects.requireNonNull(start, &quot;start&quot;);</span>
+<span class="fc" id="L38">    }</span>
+
+    void cancel(boolean late) {
+<span class="fc" id="L41">        changeStatus(AppointmentStatus.CANCELLED);</span>
+<span class="fc" id="L42">        this.lateCancellation = late;</span>
+<span class="fc" id="L43">    }</span>
+
+    void markRescheduled() {
+<span class="fc" id="L46">        changeStatus(AppointmentStatus.RESCHEDULED);</span>
+<span class="fc" id="L47">    }</span>
+
+    void complete() {
+<span class="fc" id="L50">        changeStatus(AppointmentStatus.COMPLETED);</span>
+<span class="fc" id="L51">    }</span>
+
+    void markNoShow() {
+<span class="fc" id="L54">        changeStatus(AppointmentStatus.NO_SHOW);</span>
+<span class="fc" id="L55">    }</span>
+
+    /** Notes are allowed in any status, e.g. to record why an appointment was cancelled. */
+    void addNote(String note) {
+<span class="fc" id="L59">        notes.add(note);</span>
+<span class="fc" id="L60">    }</span>
+
+    /** Last line of defence: final statuses can never change, whoever calls. */
+    private void changeStatus(AppointmentStatus newStatus) {
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (status != AppointmentStatus.SCHEDULED) {</span>
+<span class="fc" id="L65">            throw new SchedulingException(BusinessRule.STATUS_FINAL,</span>
+                    &quot;Cannot change appointment &quot; + id + &quot; from &quot; + status + &quot; to &quot; + newStatus);
+        }
+<span class="fc" id="L68">        status = newStatus;</span>
+<span class="fc" id="L69">    }</span>
+
+    public String getId() {
+<span class="fc" id="L72">        return id;</span>
+    }
+
+    public Patient getPatient() {
+<span class="fc" id="L76">        return patient;</span>
+    }
+
+    public Doctor getDoctor() {
+<span class="fc" id="L80">        return doctor;</span>
+    }
+
+    public LocalDateTime getStart() {
+<span class="fc" id="L84">        return start;</span>
+    }
+
+    public LocalDateTime getEnd() {
+<span class="fc" id="L88">        return start.plusMinutes(ClinicRules.SLOT_MINUTES);</span>
+    }
+
+    public LocalDate getDate() {
+<span class="fc" id="L92">        return start.toLocalDate();</span>
+    }
+
+    public AppointmentStatus getStatus() {
+<span class="fc" id="L96">        return status;</span>
+    }
+
+    public boolean isLateCancellation() {
+<span class="fc" id="L100">        return lateCancellation;</span>
+    }
+
+    public List&lt;String&gt; getNotes() {
+<span class="fc" id="L104">        return Collections.unmodifiableList(notes);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L109">        return id + &quot; &quot; + start + &quot; &quot; + patient.getName() + &quot; -&gt; &quot; + doctor + &quot; [&quot; + status + &quot;]&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

@@ -1,4 +1,8 @@
-# Report Support Material
+# Historical Report Support Material
+
+> This document preserves the run-15 baseline of 28 October 2026. The completed
+> current report is [report.md](report.md), also exported as PDF and HTML. Current
+> dependency versions and results are in [final-verification.md](test-results/final-verification.md).
 
 Technical material for the eight report sections required by the assignment. It is **source
 material to review and rewrite in your own words**, not the report itself. Every number here was

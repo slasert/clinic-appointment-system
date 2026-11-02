@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClinicRules.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.rules</a> &gt; <span class="el_source">ClinicRules.java</span></div><h1>ClinicRules.java</h1><pre class="source lang-java linenums">package com.clinic.rules;
+
+import java.time.Duration;
+import java.time.LocalTime;
+
+/**
+ * Business rule constants of the clinic. Kept in one place so the requirements
+ * and the tests refer to the same numbers.
+ */
+public final class ClinicRules {
+
+<span class="fc" id="L12">    public static final LocalTime OPENING_TIME = LocalTime.of(9, 0);</span>
+<span class="fc" id="L13">    public static final LocalTime CLOSING_TIME = LocalTime.of(17, 0);</span>
+<span class="fc" id="L14">    public static final LocalTime LUNCH_START = LocalTime.of(12, 0);</span>
+<span class="fc" id="L15">    public static final LocalTime LUNCH_END = LocalTime.of(13, 0);</span>
+    public static final int SLOT_MINUTES = 30;
+
+    /** Last bookable start time: 16:30. */
+<span class="fc" id="L19">    public static final LocalTime LAST_SLOT_START = CLOSING_TIME.minusMinutes(SLOT_MINUTES);</span>
+
+    /** Derived from the times above: 09:00-12:00 (6 slots) + 13:00-17:00 (8 slots) = 14. */
+<span class="fc" id="L22">    public static final int SLOTS_PER_DAY = (int) ((Duration.between(OPENING_TIME, LUNCH_START).toMinutes()</span>
+<span class="fc" id="L23">            + Duration.between(LUNCH_END, CLOSING_TIME).toMinutes()) / SLOT_MINUTES);</span>
+
+    public static final int MIN_AGE = 0;
+    public static final int MAX_AGE = 120;
+    public static final int NAME_MIN_LENGTH = 2;
+    public static final int NAME_MAX_LENGTH = 50;
+    public static final int MIN_DAILY_LIMIT = 1;
+<span class="fc" id="L30">    public static final int MAX_DAILY_LIMIT = SLOTS_PER_DAY;</span>
+
+    public static final int MIN_LEAD_HOURS = 1;
+    public static final int MAX_ADVANCE_DAYS = 30;
+    public static final int FREE_CANCELLATION_HOURS = 24;
+    public static final int MAX_ACTIVE_APPOINTMENTS_PER_PATIENT = 3;
+    public static final int MAX_NOTE_LENGTH = 200;
+    public static final int MAX_NOTES_PER_APPOINTMENT = 5;
+
+    private ClinicRules() {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

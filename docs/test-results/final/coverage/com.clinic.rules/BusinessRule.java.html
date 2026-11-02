@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BusinessRule.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.rules</a> &gt; <span class="el_source">BusinessRule.java</span></div><h1>BusinessRule.java</h1><pre class="source lang-java linenums">package com.clinic.rules;
+
+/**
+ * Catalogue of the clinic's business rules. Every rejection names the rule it enforces,
+ * so tests can check that an operation failed for the right reason and the
+ * traceability matrix can refer to stable IDs.
+ */
+<span class="fc" id="L8">public enum BusinessRule {</span>
+
+<span class="fc" id="L10">    PATIENT_ID_FORMAT(&quot;BR-01&quot;, &quot;Patient ID must be 11 digits and cannot start with 0&quot;),</span>
+<span class="fc" id="L11">    NAME_FORMAT(&quot;BR-02&quot;, &quot;Name must be &quot; + ClinicRules.NAME_MIN_LENGTH + &quot;-&quot; + ClinicRules.NAME_MAX_LENGTH + &quot; characters: letters, spaces, hyphens or apostrophes&quot;),</span>
+<span class="fc" id="L12">    PATIENT_AGE_RANGE(&quot;BR-03&quot;, &quot;Patient age must be between &quot; + ClinicRules.MIN_AGE + &quot; and &quot; + ClinicRules.MAX_AGE),</span>
+<span class="fc" id="L13">    DOCTOR_DETAILS_REQUIRED(&quot;BR-04&quot;, &quot;Doctor ID and specialty cannot be empty&quot;),</span>
+<span class="fc" id="L14">    DOCTOR_LIMIT_RANGE(&quot;BR-05&quot;, &quot;Doctor daily limit must be between &quot;</span>
+            + ClinicRules.MIN_DAILY_LIMIT + &quot; and &quot; + ClinicRules.MAX_DAILY_LIMIT),
+<span class="fc" id="L16">    UNIQUE_ID(&quot;BR-06&quot;, &quot;Patient and doctor IDs must be unique&quot;),</span>
+<span class="fc" id="L17">    KNOWN_REFERENCE(&quot;BR-07&quot;, &quot;Patient, doctor or appointment does not exist&quot;),</span>
+<span class="fc" id="L18">    REQUIRED_INPUT(&quot;BR-08&quot;, &quot;A required value is missing&quot;),</span>
+
+<span class="fc" id="L20">    SLOT_ALIGNMENT(&quot;BR-09&quot;, &quot;Appointments must start on the hour or half hour&quot;),</span>
+<span class="fc" id="L21">    WORKING_DAY(&quot;BR-10&quot;, &quot;The clinic is closed on weekends&quot;),</span>
+<span class="fc" id="L22">    WORKING_HOURS(&quot;BR-11&quot;, &quot;Appointments must start between &quot; + ClinicRules.OPENING_TIME + &quot; and &quot; + ClinicRules.LAST_SLOT_START),</span>
+<span class="fc" id="L23">    LUNCH_BREAK(&quot;BR-12&quot;, &quot;No appointments during the &quot; + ClinicRules.LUNCH_START + &quot;-&quot; + ClinicRules.LUNCH_END + &quot; lunch break&quot;),</span>
+<span class="fc" id="L24">    MIN_LEAD_TIME(&quot;BR-13&quot;, &quot;Appointments must be booked at least &quot; + ClinicRules.MIN_LEAD_HOURS + &quot; hour(s) in advance&quot;),</span>
+<span class="fc" id="L25">    MAX_ADVANCE(&quot;BR-14&quot;, &quot;Appointments cannot be booked more than &quot; + ClinicRules.MAX_ADVANCE_DAYS + &quot; days ahead&quot;),</span>
+
+<span class="fc" id="L27">    DOCTOR_CONFLICT(&quot;BR-15&quot;, &quot;The doctor already has an appointment at this time&quot;),</span>
+<span class="fc" id="L28">    PATIENT_CONFLICT(&quot;BR-16&quot;, &quot;The patient already has an appointment at this time&quot;),</span>
+<span class="fc" id="L29">    DOCTOR_DAILY_LIMIT(&quot;BR-17&quot;, &quot;The doctor has reached the daily appointment limit&quot;),</span>
+<span class="fc" id="L30">    PATIENT_ACTIVE_LIMIT(&quot;BR-18&quot;, &quot;The patient already has &quot; + ClinicRules.MAX_ACTIVE_APPOINTMENTS_PER_PATIENT + &quot; upcoming appointments&quot;),</span>
+
+<span class="fc" id="L32">    LATE_CHANGE(&quot;BR-19&quot;, &quot;Less than &quot; + ClinicRules.FREE_CANCELLATION_HOURS + &quot; hours before the start only staff can cancel or reschedule&quot;),</span>
+<span class="fc" id="L33">    ALREADY_STARTED(&quot;BR-20&quot;, &quot;The appointment has already started&quot;),</span>
+<span class="fc" id="L34">    STATUS_FINAL(&quot;BR-21&quot;, &quot;Only SCHEDULED appointments can be changed&quot;),</span>
+<span class="fc" id="L35">    COMPLETION_TIME(&quot;BR-22&quot;, &quot;An appointment cannot be completed before it starts&quot;),</span>
+<span class="fc" id="L36">    NO_SHOW_TIME(&quot;BR-23&quot;, &quot;An appointment cannot be marked no-show before its slot ends&quot;),</span>
+<span class="fc" id="L37">    SAME_TIME_RESCHEDULE(&quot;BR-24&quot;, &quot;The new time must differ from the current time&quot;),</span>
+
+<span class="fc" id="L39">    NOTE_LENGTH(&quot;BR-25&quot;, &quot;A note must be 1-&quot; + ClinicRules.MAX_NOTE_LENGTH + &quot; characters&quot;),</span>
+<span class="fc" id="L40">    NOTE_LIMIT(&quot;BR-26&quot;, &quot;An appointment can have at most &quot; + ClinicRules.MAX_NOTES_PER_APPOINTMENT + &quot; notes&quot;);</span>
+
+    private final String id;
+    private final String description;
+
+<span class="fc" id="L45">    BusinessRule(String id, String description) {</span>
+<span class="fc" id="L46">        this.id = id;</span>
+<span class="fc" id="L47">        this.description = description;</span>
+<span class="fc" id="L48">    }</span>
+
+    public String getId() {
+<span class="fc" id="L51">        return id;</span>
+    }
+
+    public String getDescription() {
+<span class="fc" id="L55">        return description;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

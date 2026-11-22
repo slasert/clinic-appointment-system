@@ -1,0 +1,41 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.clinic:clinic-appointment >--------------------
+[INFO] Building clinic-appointment 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ clinic-appointment ---
+[INFO] 
+[INFO] --- jacoco:0.8.16:prepare-agent (prepare-agent) @ clinic-appointment ---
+[INFO] argLine set to -javaagent:C:\\Users\\asih_\\AppData\\Local\\Temp\\svv-maven-repository\\org\\jacoco\\org.jacoco.agent\\0.8.16\\org.jacoco.agent-0.8.16-runtime.jar=destfile=C:\\Users\\asih_\\OneDrive\\Masa�st�\\svv\\target\\jacoco.exec,excludes=com/clinic/Main*
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ clinic-appointment ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ clinic-appointment ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 14 source files with javac [debug release 21] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] An unknown compilation problem occurred
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.691 s
+[INFO] Finished at: 2026-11-02T23:19:37+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project clinic-appointment: Compilation failure
+[ERROR] An unknown compilation problem occurred
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+Fatal Error: Cannot close compiler resources

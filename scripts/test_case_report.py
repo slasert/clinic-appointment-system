@@ -36,13 +36,22 @@ for path in sorted(glob.glob(os.path.join(ROOT, "src", "test", "java", "**", "*T
 
 # ---- 2. actual results from Surefire XML
 results = defaultdict(lambda: [0, 0])  # id -> [passed, failed]
+unmapped = []
 for path in glob.glob(os.path.join(ROOT, "target", "surefire-reports", "TEST-*.xml")):
     for case in ET.parse(path).getroot().iter("testcase"):
         m = TC.search(case.get("name", ""))
         if not m:
+            unmapped.append(case.get("name", ""))
             continue
+        if case.find("skipped") is not None:
+            raise SystemExit("Skipped test found; this report requires a complete run")
         failed = case.find("failure") is not None or case.find("error") is not None
         results[m.group(0)][1 if failed else 0] += 1
+
+if unmapped:
+    raise SystemExit("Test results lack case IDs. Enable Surefire phrased names: " + ", ".join(unmapped[:3]))
+if set(catalogue) != set(results):
+    raise SystemExit("Source catalogue and execution results differ; run the complete clean suite first")
 
 # ---- 3. markdown
 def sort_key(tc_id):

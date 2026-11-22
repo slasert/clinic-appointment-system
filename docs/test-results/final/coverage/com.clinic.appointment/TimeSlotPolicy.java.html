@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TimeSlotPolicy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.appointment</a> &gt; <span class="el_source">TimeSlotPolicy.java</span></div><h1>TimeSlotPolicy.java</h1><pre class="source lang-java linenums">package com.clinic.appointment;
+
+import com.clinic.exception.SchedulingException;
+import com.clinic.exception.ValidationException;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Time rules for an appointment start (BR-08 to BR-14).
+ *
+ * &lt;p&gt;Every method is a pure function of the requested start and the current time,
+ * so the rules can be tested without a service and without a clock.&lt;/p&gt;
+ */
+final class TimeSlotPolicy {
+
+    private TimeSlotPolicy() {
+    }
+
+    /**
+     * Returns the first rule the start time breaks, or empty if it can be booked.
+     * Rules are checked in a fixed order so the reported reason is predictable.
+     */
+    static Optional&lt;BusinessRule&gt; findViolation(LocalDateTime start, LocalDateTime now) {
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (start == null) {</span>
+<span class="fc" id="L33">            return Optional.of(BusinessRule.REQUIRED_INPUT);</span>
+        }
+<span class="fc bfc" id="L35" title="All 6 branches covered.">        if (start.getSecond() != 0 || start.getNano() != 0 || start.getMinute() % ClinicRules.SLOT_MINUTES != 0) {</span>
+<span class="fc" id="L36">            return Optional.of(BusinessRule.SLOT_ALIGNMENT);</span>
+        }
+<span class="fc" id="L38">        DayOfWeek day = start.getDayOfWeek();</span>
+<span class="fc bfc" id="L39" title="All 4 branches covered.">        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {</span>
+<span class="fc" id="L40">            return Optional.of(BusinessRule.WORKING_DAY);</span>
+        }
+<span class="fc" id="L42">        LocalTime time = start.toLocalTime();</span>
+<span class="fc bfc" id="L43" title="All 4 branches covered.">        if (time.isBefore(ClinicRules.OPENING_TIME) || time.isAfter(ClinicRules.LAST_SLOT_START)) {</span>
+<span class="fc" id="L44">            return Optional.of(BusinessRule.WORKING_HOURS);</span>
+        }
+<span class="fc bfc" id="L46" title="All 4 branches covered.">        if (!time.isBefore(ClinicRules.LUNCH_START) &amp;&amp; time.isBefore(ClinicRules.LUNCH_END)) {</span>
+<span class="fc" id="L47">            return Optional.of(BusinessRule.LUNCH_BREAK);</span>
+        }
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (start.isBefore(now.plusHours(ClinicRules.MIN_LEAD_HOURS))) {</span>
+<span class="fc" id="L50">            return Optional.of(BusinessRule.MIN_LEAD_TIME);</span>
+        }
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (start.toLocalDate().isAfter(now.toLocalDate().plusDays(ClinicRules.MAX_ADVANCE_DAYS))) {</span>
+<span class="fc" id="L53">            return Optional.of(BusinessRule.MAX_ADVANCE);</span>
+        }
+<span class="fc" id="L55">        return Optional.empty();</span>
+    }
+
+    /**
+     * Throws if the start time breaks a rule: {@link ValidationException} for malformed input
+     * (missing or not on a slot boundary), {@link SchedulingException} for a clinic rule.
+     */
+    static void validate(LocalDateTime start, LocalDateTime now) {
+<span class="fc" id="L63">        Optional&lt;BusinessRule&gt; violation = findViolation(start, now);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (violation.isEmpty()) {</span>
+<span class="fc" id="L65">            return;</span>
+        }
+<span class="fc" id="L67">        BusinessRule rule = violation.get();</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        String message = rule.getDescription() + (start == null ? &quot;&quot; : &quot; (requested &quot; + start + &quot;)&quot;);</span>
+<span class="fc bfc" id="L69" title="All 4 branches covered.">        if (rule == BusinessRule.REQUIRED_INPUT || rule == BusinessRule.SLOT_ALIGNMENT) {</span>
+<span class="fc" id="L70">            throw new ValidationException(rule, message);</span>
+        }
+<span class="fc" id="L72">        throw new SchedulingException(rule, message);</span>
+    }
+
+    /** All slot start times of a working day (09:00 ... 16:30 without lunch), before date-specific rules. */
+    static List&lt;LocalDateTime&gt; dailySlots(LocalDate date) {
+<span class="fc" id="L77">        List&lt;LocalDateTime&gt; slots = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L78">        for (LocalTime time = ClinicRules.OPENING_TIME;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">             !time.isAfter(ClinicRules.LAST_SLOT_START);</span>
+<span class="fc" id="L80">             time = time.plusMinutes(ClinicRules.SLOT_MINUTES)) {</span>
+<span class="fc bfc" id="L81" title="All 4 branches covered.">            if (time.isBefore(ClinicRules.LUNCH_START) || !time.isBefore(ClinicRules.LUNCH_END)) {</span>
+<span class="fc" id="L82">                slots.add(date.atTime(time));</span>
+            }
+        }
+<span class="fc" id="L85">        return slots;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

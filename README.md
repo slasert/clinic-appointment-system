@@ -5,8 +5,8 @@ Individual assignment for **Software Validation and Verification** – Sıla SER
 ## 1. Project overview
 
 A Java 21 console application that books, cancels and reschedules appointments for a small clinic
-and enforces 26 explicit business rules. The project's focus is systematic verification: 114 JUnit 5
-test cases (215 test invocations) designed with equivalence partitioning, boundary value analysis,
+and enforces 26 explicit business rules. The project's focus is systematic verification: 115 JUnit 5
+test cases (216 test invocations) designed with equivalence partitioning, boundary value analysis,
 decision tables and negative testing, run as a regression suite after every change, measured with
 JaCoCo and checked with a manual mutation analysis.
 
@@ -33,7 +33,7 @@ does the error rate.
 | FR-01 | Patient ID is 11 digits and does not start with 0; name is 2–50 characters (letters, spaces, `-`, `'`); age is 0–120. |
 | FR-02 | A doctor has a non-empty ID, a valid name, a non-empty specialty and a daily appointment limit of 1–14. |
 | FR-03 | An appointment lasts 30 minutes and starts on :00 or :30, on a weekday, between 09:00 and 16:30, not during the 12:00–13:00 lunch break, at least 1 hour from now and at most 30 days ahead. |
-| FR-04 | A doctor cannot have two appointments at the same time; a patient cannot have two appointments at the same time; a doctor cannot exceed the daily limit; a patient can have at most 3 upcoming appointments. |
+| FR-04 | A doctor cannot have two appointments at the same time; a patient cannot have two appointments at the same time; a doctor cannot exceed the daily limit; a patient can have at most 3 active appointments (SCHEDULED with an end after now, including an ongoing visit). |
 | FR-05 | Patient and doctor IDs are unique. |
 | FR-06 | Cancellation ≥ 24 h before the start is allowed for anyone. Under 24 h only staff may cancel and it is recorded as a late cancellation. Cancelling at or after the start is not allowed. |
 | FR-07 | Rescheduling follows the cancellation policy and is atomic: the old appointment becomes RESCHEDULED and a new one is created, or nothing changes. |
@@ -54,12 +54,12 @@ with valid and invalid inputs, expected behaviour and tests, is in
 |---|---|---|
 | Java (Eclipse Temurin JDK) | 21 | Language and runtime; only the standard library is used by the application |
 | Apache Maven + Maven Wrapper | 3.9.9 / 3.3.2 | Build, dependency management, test execution |
-| JUnit 5 (Jupiter) | 5.11.4 | Unit testing (the only external library; test scope) |
-| Maven Surefire (+ report plugin) | 3.5.2 | Runs tests, XML/HTML reports |
-| JaCoCo | 0.8.12 | Code coverage |
+| JUnit 5 (Jupiter) | 5.14.4 | Unit testing (the only external library; test scope) |
+| Maven Surefire (+ report plugin) | 3.6.1 | Runs tests, XML/HTML reports |
+| JaCoCo | 0.8.16 | Code coverage |
 | exec-maven-plugin | 3.5.0 | Runs the console demo |
 | Git | 2.56 | Version control; the history documents each defect fix |
-| Python 3 (optional) | – | Two helper scripts in `scripts/` for evidence (not part of the build) |
+| Python 3 (optional) | – | Helper scripts in `scripts/` for evidence, report export and submission packaging |
 
 No database, GUI, web framework or network access is used. Data is kept in memory (`LinkedHashMap`).
 
@@ -74,6 +74,7 @@ src/main/java/com/clinic/
   exception/                          ClinicException, ValidationException, SchedulingException
   rules/                              ClinicRules (constants), BusinessRule (BR catalogue)
 src/test/java/com/clinic/
+  SmokeTest.java                     TC-DEMO-01 checks actual console outcomes
   appointment/                        BookingTest, CancellationTest, RescheduleTest, StatusTransitionTest,
                                       SlotValidationTest, TimeSlotPolicyTest, ScheduleQueryTest, NoteTest,
                                       AppointmentTest
@@ -84,7 +85,10 @@ docs/
   audit.md                            project audit (Phase 1)
   test-plan.md                        strategy, rule catalogue, techniques, decision tables, traceability matrix
   defect-log.md                       defects DEF-01…DEF-04, mutation analysis, tooling issues
-  report-material.md                  material and references for the written report
+  report.md, report.pdf, report.html   complete eight-section report
+  proposal.md                         scope and honest approval-record status
+  submission-checklist.md             assignment-to-deliverable mapping
+  report-material.md                  historical report support material (run 15)
   test-results/                       saved console output of every test run, mutation analysis, demo output
 scripts/
   test_case_report.py                 builds docs/test-results/test-case-results.md from Surefire XML
@@ -147,12 +151,12 @@ python scripts\test_case_report.py          # → docs/test-results/test-case-re
 
 Details and justification: [docs/test-plan.md](docs/test-plan.md).
 
-## 13. Test results (run of 2026-10-28, `mvnw clean test`)
+## 13. Test results (2 November 2026, `mvnw clean verify`)
 
 | Measure | Result |
 |---|---|
-| Test cases / JUnit invocations | 114 / 215 |
-| Passed / failed / skipped | 215 / 0 / 0 |
+| Test cases / JUnit invocations | 115 / 216 |
+| Passed / failed / skipped | 216 / 0 / 0 |
 | Line coverage (whole project / core `appointment` package) | 100 % (317/317) / 100 % (219/219) |
 | Branch coverage (whole project / core) | 98.9 % (176/178) / 100 % (140/140) |
 | Method coverage (whole project / core) | 100 % (88/88) / 100 % (58/58) |
@@ -181,7 +185,24 @@ branches are `equals(...)` called with an object of another class in `Patient` a
 - Persistence (file or database) and concurrent access.
 - National-ID checksum validation; clarify and implement the late-reschedule flag.
 
-## 16. AI assistance disclosure
+## 16. Submission materials
+
+The complete eight-section report is available as [PDF](docs/report.pdf),
+[HTML](docs/report.html) and [Markdown](docs/report.md). The scope proposal is in
+[docs/proposal.md](docs/proposal.md). See [docs/submission-checklist.md](docs/submission-checklist.md)
+for the mapping to the assignment and the final evidence summary. The ZIP in `submission/`
+contains source, tests, build configuration, the runnable JAR, reports and saved evidence.
+
+```powershell
+.\mvnw.cmd clean verify
+java -jar target/clinic-appointment-1.0-SNAPSHOT.jar
+```
+
+Full coverage and test reports are also preserved under `docs/test-results/final/`,
+so they remain available after cleaning `target/`. The current final run supersedes the
+historical figures in `docs/report-material.md`.
+
+## 17. AI assistance disclosure
 
 This project was developed with the help of **Claude (Anthropic)**, used inside Visual Studio Code.
 Claude generated the initial implementation, the JUnit 5 tests, the Maven configuration and the
@@ -189,5 +210,8 @@ documentation drafts from the approved proposal; later it audited and refactored
 reproduced and fixed defects DEF-01…DEF-04 with failing tests first, carried out the mutation
 analysis and collected coverage results by running the tools. Every result in this repository comes
 from a real execution recorded in `docs/test-results/` and in the git history (commits are marked
-`Co-Authored-By: Claude`). The student reviewed the work and is responsible for the report and for
-explaining every implementation and testing decision.
+`Co-Authored-By: Claude`). OpenAI Codex subsequently completed final build configuration, the console regression test,
+the eight-section report, reference verification and submission packaging. The student must
+review and understand the work and is responsible for explaining the implementation and
+testing decisions and complying with the instructor?s AI-use guidelines. The report is
+AI-assisted; it is not represented as independently written student prose.

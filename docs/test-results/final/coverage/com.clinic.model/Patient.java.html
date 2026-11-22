@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="tr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Patient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">clinic-appointment</a> &gt; <a href="index.source.html" class="el_package">com.clinic.model</a> &gt; <span class="el_source">Patient.java</span></div><h1>Patient.java</h1><pre class="source lang-java linenums">package com.clinic.model;
+
+import com.clinic.exception.ValidationException;
+import com.clinic.rules.BusinessRule;
+import com.clinic.rules.ClinicRules;
+
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+/**
+ * A registered patient. Instances are immutable and always valid.
+ */
+public final class Patient {
+
+    /** 11 digits, first digit cannot be 0 (Turkish national ID format, BR-01). */
+<span class="fc" id="L16">    private static final Pattern ID_PATTERN = Pattern.compile(&quot;[1-9][0-9]{10}&quot;);</span>
+
+    private final String id;
+    private final String name;
+    private final int age;
+
+<span class="fc" id="L22">    public Patient(String id, String name, int age) {</span>
+<span class="fc" id="L23">        this.id = validateId(id);</span>
+<span class="fc" id="L24">        this.name = NameValidator.validate(name, &quot;Patient name&quot;);</span>
+<span class="fc" id="L25">        this.age = validateAge(age);</span>
+<span class="fc" id="L26">    }</span>
+
+    private static String validateId(String id) {
+<span class="fc bfc" id="L29" title="All 4 branches covered.">        if (id == null || !ID_PATTERN.matcher(id).matches()) {</span>
+<span class="fc" id="L30">            throw new ValidationException(BusinessRule.PATIENT_ID_FORMAT,</span>
+                    &quot;Patient ID must be 11 digits and cannot start with 0&quot;);
+        }
+<span class="fc" id="L33">        return id;</span>
+    }
+
+    private static int validateAge(int age) {
+<span class="fc bfc" id="L37" title="All 4 branches covered.">        if (age &lt; ClinicRules.MIN_AGE || age &gt; ClinicRules.MAX_AGE) {</span>
+<span class="fc" id="L38">            throw new ValidationException(BusinessRule.PATIENT_AGE_RANGE,</span>
+                    &quot;Patient age must be between &quot; + ClinicRules.MIN_AGE + &quot; and &quot; + ClinicRules.MAX_AGE);
+        }
+<span class="fc" id="L41">        return age;</span>
+    }
+
+    public String getId() {
+<span class="fc" id="L45">        return id;</span>
+    }
+
+    public String getName() {
+<span class="fc" id="L49">        return name;</span>
+    }
+
+    public int getAge() {
+<span class="fc" id="L53">        return age;</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L58" title="1 of 4 branches missed.">        return o instanceof Patient other &amp;&amp; id.equals(other.id);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L63">        return Objects.hash(id);</span>
+    }
+
+    /** The national ID is masked so it does not leak into console output or error messages. */
+    @Override
+    public String toString() {
+<span class="fc" id="L69">        return name + &quot; (&quot; + id.substring(0, 3) + &quot;******&quot; + id.substring(9) + &quot;)&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

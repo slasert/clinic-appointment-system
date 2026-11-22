@@ -5,7 +5,7 @@
 | Item | Decision |
 |---|---|
 | Test level | Unit and component tests of the Java classes (no UI, no database, no network). |
-| Framework | JUnit 5 (Jupiter) 5.11.4, run by Maven Surefire 3.5.2. |
+| Framework | JUnit 5 (Jupiter) 5.14.4, run by Maven Surefire 3.6.1. |
 | Test basis | Functional requirements FR-01…FR-10 and business rules BR-01…BR-26 (`com.clinic.rules.BusinessRule`). |
 | Time | All time-dependent rules use an injected `Clock`. Tests use `MutableClock`, fixed at Monday 2026-11-02 08:00 and moved explicitly. No test reads the real clock, sleeps or uses random data. |
 | Independence | `ServiceTestBase` creates a new service, clock, doctors and patients before **every** test (`@BeforeEach`). Tests can run in any order. |
@@ -172,6 +172,8 @@ The full suite was rerun after every change and every run was saved (`docs/test-
 | 13 | Tests added after mutation round 1 | 212/212 pass |
 | 14 | Surefire reports with display names (`clean test`) | 212/212 pass |
 | 15 | `AppointmentTest` added for invariants unreachable through the API (`clean test`) | 215/215 pass |
+| 24 | Current dependencies, runnable JAR and meaningful console test (`clean verify`) | 216/216 pass |
+| 25 | Restore test IDs in XML; clean verification and HTML report | 216/216 pass |
 
 The initial suite run (before DEF-01) was not saved; this is a gap in the evidence.
 
@@ -183,15 +185,15 @@ The initial suite run (before DEF-01) was not saved; this is a gap in the eviden
 | Boundary value analysis | all time/limit tests (see 3.2) | 35 |
 | Decision table | BookingTest, CancellationTest, RescheduleTest, StatusTransitionTest | 18 |
 | Negative testing | every class | 55 |
-| Regression | the whole suite, every run | 114 test cases / 215 invocations |
-| Other functional tests (untagged) | queries, ordering, ID generation, TimeSlotPolicy, encapsulation | 27 |
+| Regression | the whole suite, every run | 115 test cases / 216 invocations |
+| Other functional tests (untagged) | queries, ordering, ID generation, TimeSlotPolicy, encapsulation, console demo | 28 |
 
 A test case can carry several tags, so the counts overlap. Counts are produced by
 `scripts/test_case_report.py`.
 
 ## 5. Requirements traceability matrix
 
-Actual result: all listed test cases passed in run 15 (`docs/test-results/test-case-results.md`).
+Actual result: all listed test cases passed in final run 25 and isolated copy run 26 (216 invocations, including TC-DEMO-01); historical run 15 had 215 invocations. Per-case evidence: `docs/test-results/test-case-results.md`.
 
 | Req. | Business rules | Implementation | Test cases | Techniques | Expected result | Actual | Status |
 |---|---|---|---|---|---|---|---|
@@ -203,7 +205,7 @@ Actual result: all listed test cases passed in run 15 (`docs/test-results/test-c
 | FR-06 Cancellation | BR-07, BR-08, BR-19, BR-20, BR-21 | `cancel`, `checkChangePolicy`, `Appointment.cancel` | TC-C-01 … TC-C-09 | DT, BVA, Negative | Decision table outcomes, late flag | as expected | Pass |
 | FR-07 Rescheduling | BR-08, BR-12, BR-15 … BR-21, BR-24 | `reschedule` | TC-RS-01 … TC-RS-14 | DT, BVA, Negative | Atomic move or no change | as expected | Pass |
 | FR-08 Status lifecycle | BR-21, BR-22, BR-23 | `complete`, `markNoShow`, `Appointment.changeStatus`; package-private mutators | TC-ST-01 … 04, 07, 09, 10; TC-E-01, TC-E-02; TC-A-01 … TC-A-03 | DT, BVA, Negative | Only SCHEDULED changes; time limits | as expected | Pass |
-| FR-09 Queries | BR-07, BR-08, BR-13, BR-14, BR-17 | `getAvailableSlots`, `getDoctorSchedule`, `getPatientAppointments`, `findAppointment` | TC-Q-01 … TC-Q-11 | EP, BVA, Negative | Correct, sorted, read-only results | as expected | Pass |
+| FR-09 Queries | BR-07, BR-08, BR-13, BR-14, BR-17 | `getAvailableSlots`, `getDoctorSchedule`, `getPatientAppointments`, `findAppointment` | TC-Q-01 … TC-Q-11 | EP, BVA, Negative | Correct availability; sorted, read-only history and schedule | as expected | Pass |
 | FR-10 Notes | BR-07, BR-25, BR-26 | `addNote`, `Appointment.getNotes` | TC-N-01 … TC-N-08 | EP, BVA, Negative | Valid notes stored trimmed; limits enforced | as expected | Pass |
 
 **Retired test IDs** (kept out of use so old logs stay unambiguous): TC-ST-05 and TC-ST-06
